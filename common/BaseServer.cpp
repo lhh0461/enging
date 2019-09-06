@@ -10,14 +10,15 @@
 #include <arpa/inet.h>
 
 #include "BaseServer.h"
-//#include "NetTools.h"
+#include "Log.h"
+#include "ConfigParser.h"
 
 using namespace std;
 
 CBaseServer::CBaseServer()
-    :m_epoll_fd(0), m_listen_fd(0)
+    :m_epoll_fd(0), m_listen_fd(0), m_Config(NULL)
 {
-
+    m_Config = new CConfigParser();
 }
 
 CBaseServer::~CBaseServer()
@@ -27,6 +28,14 @@ CBaseServer::~CBaseServer()
 
 void CBaseServer::Init()
 {
+    if (m_Config->Parser("./config.ini") == false) {
+        LOG_ERROR("CBaseServer::Init desc=Init Fail");
+        exit(1);
+    }
+
+    string ip = m_Config->GetConig("global", "IP");
+    int port = m_Config->GetConig("global", "PORT");
+
     m_epoll_fd = epoll_create(MAX_EVENT); 
     
     int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -35,8 +44,8 @@ void CBaseServer::Init()
     struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;  //使用IPv4地址
-    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");  //具体的IP地址
-    serv_addr.sin_port = htons(1234);  //端口
+    serv_addr.sin_addr.s_addr = inet_addr(ip.c_str());  //具体的IP地址
+    serv_addr.sin_port = htons(port);  //端口
     bind(fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
     listen(fd, 1024);
 
@@ -68,12 +77,15 @@ void CBaseServer::HandleNewConnection()
 {
     struct sockaddr addr;
     socklen_t addrlen;
-    int conn_sock = accept(m_listen_fd, (struct sockaddr *) &addr, &addrlen);
+    int conn_fd = accept(m_listen_fd, (struct sockaddr *) &addr, &addrlen);
 
-    int flag = fcntl(conn_sock, F_GETFL, 0); 
-    fcntl(conn_sock, F_SETFL, flag | O_NONBLOCK);
+    int flag = fcntl(conn_fd, F_GETFL, 0); 
+    fcntl(conn_fd, F_SETFL, flag | O_NONBLOCK);
 
-    AddFdToEpoll(conn_sock);
+    AddFdToEpoll(conn_fd);
+
+    CClientCtx *client = new CClientCtx();
+    m_ConnStat.insert(std::make_pair(conn_fd, client));
 }
 
 void CBaseServer::AddFdToEpoll(int fd)
@@ -88,22 +100,43 @@ void CBaseServer::HandleRecvMsg(int fd)
 {
     for (;;)
     {
-        char buf[1024] = {0};
-        ssize_t recv_num = ::recv(fd, buf, 1024, 0);
-        if (recv_num > 0) {
+        auto it = m_ConnStat.find(fd);
+        if (it != m_ConnStat.end()) {
+            CConnCtx *ctx = it->second;
+            CBuffer *pRecvBuf = ctx->GetRecvBuf();
+            if (ctx != NULL) {
+                size_t left = pRecvBuf->GetBuffSize() - pRecvBuf->GetDataLen();
+                size_t num = ::recv(fd, pRecvBuf->GetBuff(), left, 0);
+                if (num > 0) {
+                    size_t totallen = pRecvBuf->SetDataLen(pRecvBuf->GetDataLen() + num);
+                    if (totallen < HEAD_SIZE) {
+                         //包头还没读取够
+                         break;
+                    }
+                    size_t packsize = *(uint64_t *)pRecvBuf->GetBuff();
+                    if (totallen < packsize) {
+                         break;
+                    }
+                    
 
-        }
-        else if (recv_num == -1) {
-            if (errno == EINTR) {
-                continue;
+                    if (num == left) {
+                        //TODO 也许还有数据没读取完毕
+                        continue;
+                    } else {
+                        break;
+                    }
+                }
+                else if (num == -1) {
+                    if (errno == EINTR) {
+                        continue;
+                    }
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                        continue;
+                    }
+                    cout << "errno=" << errno << ",errmsg="  << strerror(errno)  << endl;
+                    break;
+                }
             }
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                continue;
-            }
-            cout << "errno=" << errno << ",errmsg="  << strerror(errno)  << endl;
-            break;
         }
-
-        cout << "recv msg!" << buf <<"123"  << endl;
     }
 }

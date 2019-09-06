@@ -14,13 +14,13 @@ enum eClientType
     HARBOR_TYPE= 2,
 };
 
-class CClientCtx 
+class CConnCtx 
 {
 public:
-    CClientCtx();
-    ~CClientCtx();
+    CConnCtx();
+    CConnCtx();
+    ~CConnCtx();
 private:
-    int m_vfd;
     int m_type;
     CBuffer m_SendBuf;
     CBuffer m_RecvBuf;
@@ -34,15 +34,18 @@ public:
     virtual ~CBaseServer();
     virtual void Init();
     virtual void Run();
+private:
+    void HandleNewConnection();
     void AddFdToEpoll(int fd);
-    void ReadFdPacket(int fd);
+    void HandleRecvMsg(int fd);
 private:
     int m_epoll_fd; 
     int m_listen_fd; 
     int m_vfd; 
     int m_tick; 
     CRpc *m_Rpc;
-    std::unordered_map<int, CClientCtx *> *m_ConnStat;
+    CConfigParser *m_Config;
+    std::unordered_map<int, CClientCtx *> m_ConnStat;
 };
 
 #endif //__BASE_SERVER__
