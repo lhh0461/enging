@@ -68,6 +68,9 @@ void CBaseServer::Run()
                 if (events[i].events & EPOLLIN) {
                     HandleRecvMsg(events[i].data.fd);
                 }
+                else if (events[i].events & EPOLLOUT) {
+                    HandleWriteMsg(events[i].data.fd);
+                }
             }
         }
     }
@@ -104,10 +107,21 @@ void CBaseServer::HandleRecvMsg(int fd)
         if (it != m_ConnStat.end()) {
             CConnCtx *ctx = it->second;
             CBuffer *pRecvBuf = ctx->GetRecvBuf();
+            std::list<CPackage *> recvList = ctx->GetRecvPackList(); 
             if (ctx != NULL) {
                 size_t left = pRecvBuf->GetBuffSize() - pRecvBuf->GetDataLen();
                 size_t num = ::recv(fd, pRecvBuf->GetBuff(), left, 0);
-                if (num > 0) {
+                if (num == -1) {
+                    if (errno == EINTR) {
+                        continue;
+                    }
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                        continue;
+                    }
+                    cout << "errno=" << errno << ",errmsg="  << strerror(errno)  << endl;
+                    break;
+                }
+                else if (num > 0) {
                     size_t totallen = pRecvBuf->SetDataLen(pRecvBuf->GetDataLen() + num);
                     if (totallen < HEAD_SIZE) {
                          //包头还没读取够
@@ -118,6 +132,8 @@ void CBaseServer::HandleRecvMsg(int fd)
                          break;
                     }
                     
+                    CPackage *package = new CPackage(pRecvBuf->GetBuff() + sizeof(uint64_t), totallen)
+                    recvList.push_back(package);
 
                     if (num == left) {
                         //TODO 也许还有数据没读取完毕
@@ -126,17 +142,33 @@ void CBaseServer::HandleRecvMsg(int fd)
                         break;
                     }
                 }
-                else if (num == -1) {
-                    if (errno == EINTR) {
-                        continue;
-                    }
-                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                        continue;
-                    }
-                    cout << "errno=" << errno << ",errmsg="  << strerror(errno)  << endl;
-                    break;
-                }
             }
         }
+    }
+}
+
+void CBaseServer::HandlePackage()
+{
+    auto it = m_ConnStat.begin();
+    for (; it != m_ConnStat.end() it++) {
+        std::list<CPackage *> recvList = it->second->GetRecvPackList(); 
+        if (!recvList.empty()) {
+            auto it2 = recvList.begin();
+            for (; it2 != recvList.end() it2++) {
+                this->FromRpcCall(*it2);
+            }
+        }
+    }
+}
+
+int CBaseServer::FromRpcCall(const CPackage *package)
+{
+    uint16_t cmd_id = package->GetCmd(); 
+    switch(cmd_id) {
+        case MSG_CMD_RPC:
+            m_Rpc->Dispatch(package);
+            break;
+        default:
+            break;
     }
 }

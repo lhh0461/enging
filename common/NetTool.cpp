@@ -1,4 +1,5 @@
 
+/*
 
 int Listen(const char *ip, int port, int backlog)
 {
@@ -60,3 +61,4 @@ int SetBlock(int fd, int block, int *oldflag)
     return fcntl(fd, F_SETFL, block == 0 ? flag | O_NONBLOCK : flag & (~O_NONBLOCK));
 }
 
+*/

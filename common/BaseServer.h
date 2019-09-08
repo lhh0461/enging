@@ -2,42 +2,29 @@
 #define __BASE_SERVER__
 
 #include <unordered_map>
+#include "Package.h"
 
-enum
-{
-    MAX_EVENT = 9999,
-};
-
-enum eClientType
-{
-    CLIENT_TYPE= 1,
-    HARBOR_TYPE= 2,
-};
-
-class CConnCtx 
-{
-public:
-    CConnCtx();
-    CConnCtx();
-    ~CConnCtx();
-private:
-    int m_type;
-    CBuffer m_SendBuf;
-    CBuffer m_RecvBuf;
-};
 
 class CBaseServer
 {
+public:
+    enum
+    {
+        MAX_EVENT = 9999,
+    };
 public:
     CBaseServer();
     ~CBaseServer();
     virtual ~CBaseServer();
     virtual void Init();
     virtual void Run();
+protected:
+    virtual int FromRpcCall(const CPackage *package);
 private:
     void HandleNewConnection();
     void AddFdToEpoll(int fd);
     void HandleRecvMsg(int fd);
+    void HandlePackage();
 private:
     int m_epoll_fd; 
     int m_listen_fd; 
@@ -49,3 +36,4 @@ private:
 };
 
 #endif //__BASE_SERVER__
+

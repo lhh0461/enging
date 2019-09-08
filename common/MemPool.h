@@ -42,7 +42,7 @@ private:
             return 0;
         }
 
-        for (int i = 0; i < block_size; i++) {
+        for (size_t i = 0; i < block_size; i++) {
             m_FreeList.push_back(&p[i]);
         }
 

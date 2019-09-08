@@ -1,0 +1,33 @@
+#ifndef __BUFFER__
+#define __BUFFER__
+
+
+class CBuffer
+{
+public:
+    enum {
+        BUFFER_INIT_SIZE = 10240,
+    };
+public:
+    CBuffer(size_t initsz = MSGPACK_SBUFFER_INIT_SIZE);
+    CBuffer(const char *buf, size_t len);
+    CBuffer(CBuffer&& other);
+    ~CBuffer();
+    CBuffer(const CBuffer&) = delete;
+    CBuffer & operator=(const CBuffer &) = delete;
+public:
+    char* GetData() { return m_data; }
+    const char* GetData() const { return m_data; }
+    size_t GetDataSize() const { return m_size; }
+    size_t GetBufSize() const { return m_alloc; }
+    void Reset() { m_size = 0; }
+    void write(const char* buf, size_t len); //define for msgpack
+private:
+    void Expand(size_t len);
+private:
+    char* m_data;
+    size_t m_size;
+    size_t m_alloc;
+};
+
+#endif //__BUFFER__

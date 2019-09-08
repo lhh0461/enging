@@ -8,24 +8,16 @@ PKG_FLAG=`pkg-config --libs --cflags glib-2.0`
 LINK=-Wl,-rpath,$(JEMALLOC_DIR)/lib
 
 LIB_DIR:=lib
-SRC_DIR:=src
+SRC_DIR:=./common
 INC_DIR:=include
 THIRD_PART_DIR:=3rd
-LIBEVENT_DIR:=$(THIRD_PART_DIR)/libevent
-PROTO_DIR:=$(THIRD_PART_DIR)/protobuf
-MONGOC_DIR:=$(THIRD_PART_DIR)/mongo-c-driver
-BSON_DIR:=$(THIRD_PART_DIR)/mongo-c-driver
 MSGPACK_DIR:=$(THIRD_PART_DIR)/msgpack
-JEMALLOC_DIR:=$(THIRD_PART_DIR)/jemalloc
+TINYXML_DIR:=$(THIRD_PART_DIR)/tinyxml2
 
 INC_FILES:=-I$(INC_DIR) \
-#	-I$(LIB_DIR)/include \
-#	-I$(LIBEVENT_DIR)/include\
-#	-I$(PROTO_DIR)/include\
-#	-I$(MONGOC_DIR)/include/libmongoc-1.0\
-#	-I$(BSON_DIR)/include/libbson-1.0\
-#	-I$(MSGPACK_DIR)/include/\
-#	-I/usr/include/python3.5
+	-I$(MSGPACK_DIR)/include/\
+	-I$(TINYXML_DIR)/include/\
+	-I/usr/include/python3.5
 
 C_SRC_FILES:=$(foreach v, $(SRC_DIR), $(wildcard $(v)/*.c))
 CXX_SRC_FILES:=$(foreach v, $(SRC_DIR), $(wildcard $(v)/*.cpp))
@@ -34,25 +26,16 @@ C_OBJ_FILES:=$(subst .c,.o,$(C_SRC_FILES))
 CXX_OBJ_FILES:=$(subst .cpp,.o,$(CXX_SRC_FILES))
 
 
-LIBS=-L$(LIB_DIR)/lib \
-#	-L$(LIBEVENT_DIR)/lib \
-#	-L$(PROTO_DIR)/lib \
-#	-L$(MONGOC_DIR)/lib \
-#	-L$(MSGPACK_DIR)/lib \
-#	-L$(JEMALLOC_DIR)/lib
+LIBS=-L$(MSGPACK_DIR)/lib \
+	-L$(TINYXML_DIR)/lib
 
-#STATIC_LIBS= -levent  \
-#	-lpython3.5m \
-#	-lprotobuf \
-#	-lmongoc-1.0 \
-#	-lbson-1.0 \
-#	-ljemalloc \
-#	-lmsgpackc
+STATIC_LIBS=-lpython3.5m \
+	-ltinyxml2 \
 
 all:$(C_OBJ_FILES) $(CXX_OBJ_FILES)
 	#$(CC) $(CFLAGS) $(C_OBJ_FILES) $(CXX_OBJ_FILES) -o $(PROJECT) $(LIBS) $(STATIC_LIBS) $(PKG_FLAG) $(LINK)
-	echo $(CXX_OBJ_FILES)
-	$(CC) $(CFLAGS) $(C_OBJ_FILES) $(CXX_OBJ_FILES) -o $(PROJECT)
+	echo "cpp files",$(CXX_OBJ_FILES)
+	$(CXX) $(CFLAGS) $(CXX_OBJ_FILES) $(CXX_OBJ_FILES) -o $(PROJECT)
 
 $(SRC_DIR)/%.o:$(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) $< -c -o $@ $(INC_FILES) $(LIBS) $(STATIC_LIBS) $(PKG_FLAG)
