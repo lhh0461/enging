@@ -14,7 +14,6 @@ class CPackage
 {
 public:
     enum {
-        //ERROR CODE 
         DEFUALT_PACKAGE_SIZE = 10240,
         HEADER_SIZE = 4,
         RESERVE_SIZE = 2,
@@ -45,8 +44,6 @@ public:
     uint16_t GetCmd() { return 1; };
     //uint16_t GetSeq() { return 1; };
     int GetErrCode() { return m_iErrorCode; };
-private:
-    bool UnpackCore(msgpack::object &obj);
 private:
     CBuffer *m_Buff;
     size_t m_iUnpackOffset;

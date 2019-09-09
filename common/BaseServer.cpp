@@ -1,7 +1,7 @@
 #include <sys/epoll.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <string.h>
+#include <string>
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -11,12 +11,17 @@
 
 #include "BaseServer.h"
 #include "Log.h"
+#include "Cmd.h"
 #include "ConfigParser.h"
+#include "Package.h"
 
 using namespace std;
 
-CBaseServer::CBaseServer()
-    :m_epoll_fd(0), m_listen_fd(0), m_Config(NULL)
+namespace XEngine
+{
+
+CBaseServer::CBaseServer():
+    m_epoll_fd(0), m_listen_fd(0)
 {
     m_Config = new CConfigParser();
 }
@@ -33,8 +38,8 @@ void CBaseServer::Init()
         exit(1);
     }
 
-    string ip = m_Config->GetConig("global", "IP");
-    int port = m_Config->GetConig("global", "PORT");
+    std::string ip = m_Config->GetConfig("global", "IP");
+    int port = atoi(m_Config->GetConfig("global", "PORT").c_str());
 
     m_epoll_fd = epoll_create(MAX_EVENT); 
     
@@ -68,9 +73,9 @@ void CBaseServer::Run()
                 if (events[i].events & EPOLLIN) {
                     HandleRecvMsg(events[i].data.fd);
                 }
-                else if (events[i].events & EPOLLOUT) {
-                    HandleWriteMsg(events[i].data.fd);
-                }
+                //else if (events[i].events & EPOLLOUT) {
+                //    HandleWriteMsg(events[i].data.fd);
+                //}
             }
         }
     }
@@ -87,7 +92,7 @@ void CBaseServer::HandleNewConnection()
 
     AddFdToEpoll(conn_fd);
 
-    CClientCtx *client = new CClientCtx();
+    CConnState *client = new CConnState();
     m_ConnStat.insert(std::make_pair(conn_fd, client));
 }
 
@@ -103,6 +108,7 @@ void CBaseServer::HandleRecvMsg(int fd)
 {
     for (;;)
     {
+        /*
         auto it = m_ConnStat.find(fd);
         if (it != m_ConnStat.end()) {
             CConnCtx *ctx = it->second;
@@ -144,24 +150,25 @@ void CBaseServer::HandleRecvMsg(int fd)
                 }
             }
         }
+        */
     }
 }
 
 void CBaseServer::HandlePackage()
 {
     auto it = m_ConnStat.begin();
-    for (; it != m_ConnStat.end() it++) {
+    for (; it != m_ConnStat.end(); it++) {
         std::list<CPackage *> recvList = it->second->GetRecvPackList(); 
         if (!recvList.empty()) {
             auto it2 = recvList.begin();
-            for (; it2 != recvList.end() it2++) {
+            for (; it2 != recvList.end(); it2++) {
                 this->FromRpcCall(*it2);
             }
         }
     }
 }
 
-int CBaseServer::FromRpcCall(const CPackage *package)
+int CBaseServer::FromRpcCall(CPackage *package)
 {
     uint16_t cmd_id = package->GetCmd(); 
     switch(cmd_id) {
@@ -172,3 +179,5 @@ int CBaseServer::FromRpcCall(const CPackage *package)
             break;
     }
 }
+
+}   // namespace XEngine

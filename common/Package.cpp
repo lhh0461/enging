@@ -7,51 +7,49 @@
 
 //for pack
 CPackage::CPackage(size_t size):
-m_Buff(NULL), m_iUnpackOffset(0), m_iErrorCode(0)
+    m_Buff(NULL), m_iUnpackOffset(0), m_iErrorCode(0)
 {
     m_Buff= new CBuffer(size);
 }
 
 //for unpack
 CPackage::CPackage(const char *buf, size_t size):
-m_Buff(NULL), m_iUnpackOffset(0), m_iErrorCode(0)
+    m_Buff(NULL), m_iUnpackOffset(0), m_iErrorCode(0)
 {
     m_Buff = new CBuffer(buf, size);
 }
 
 //-----------------unpack begin------------------
-bool CPackage::UnpackCore(msgpack::object &obj)
-{
-    if (m_iErrorCode != 0) {
-        return false;
-    }
-    msgpack::object_handle result;
-    try 
-    {
-        msgpack::unpack(result, m_Buff->GetData(), m_Buff->GetDataSize(), m_iUnpackOffset);
-    }
-    catch(msgpack::insufficient_bytes e)
-    {
-        LOG_ERROR("CPackage::UnpackCore;e=%s", e.what());
-        m_iErrorCode = 1;
-        return false;
-    }
-    catch(msgpack::parse_error e)
-    {
-        m_iErrorCode = 2;
-        LOG_ERROR("CPackage::UnpackCore;e=%s", e.what());
-        return false;
-    }
-    obj = result.get();
-    return true;
-}
+#define UNPACK_OBJ(obj) \
+    do { \
+        msgpack::object obj; \
+        if (m_iErrorCode != 0) { \
+            return false; \
+        } \
+        msgpack::object_handle result; \
+        try  \
+        { \
+            msgpack::unpack(result, m_Buff->GetData(), m_Buff->GetDataSize(), m_iUnpackOffset); \
+        } \
+        catch(msgpack::insufficient_bytes e) \
+        { \
+            LOG_ERROR("CPackage:%s;e=%s", __FUNCTION__   ,e.what()); \
+            m_iErrorCode = 1; \
+            return false; \
+        } \
+        catch(msgpack::parse_error e) \
+        { \
+            m_iErrorCode = 2; \
+            LOG_ERROR("CPackage:%s;e=%s", __FUNCTION__   ,e.what()); \
+            return false; \
+        } \
+        obj = result.get(); \
+    } while(0)
 
 bool CPackage::UnPackString(std::string & val)
 {
     msgpack::object obj;
-    if (UnpackCore(obj) == false) {
-        return false;
-    }
+    UNPACK_OBJ(obj);
     if (obj.type != msgpack::type::STR)
     {
         m_iErrorCode = 3;
@@ -66,9 +64,7 @@ bool CPackage::UnPackString(std::string & val)
 bool CPackage::UnPackInt(int64_t & value)
 {
     msgpack::object obj;
-    if (UnpackCore(obj) == false) {
-        return false;
-    }
+    UNPACK_OBJ(obj);
     if (obj.type != msgpack::type::NEGATIVE_INTEGER)
     {
         m_iErrorCode = 3;
@@ -82,9 +78,7 @@ bool CPackage::UnPackInt(int64_t & value)
 bool CPackage::UnPackFloat(double & val)
 {
     msgpack::object obj;
-    if (UnpackCore(obj) == false) {
-        return false;
-    }
+    UNPACK_OBJ(obj);
     if (msgpack::type::FLOAT64 != obj.type)
     {
         m_iErrorCode = 3;
@@ -98,9 +92,7 @@ bool CPackage::UnPackFloat(double & val)
 bool CPackage::UnPackBool(bool & val)
 {
     msgpack::object obj;
-    if (UnpackCore(obj) == false) {
-        return false;
-    }
+    UNPACK_OBJ(obj);
     if (msgpack::type::BOOLEAN != obj.type)
     {
         m_iErrorCode = 3;
@@ -114,9 +106,7 @@ bool CPackage::UnPackBool(bool & val)
 bool CPackage::UnPackBytes(std::string & val)
 {
     msgpack::object obj;
-    if (UnpackCore(obj) == false) {
-        return false;
-    }
+    UNPACK_OBJ(obj);
     if (obj.type != msgpack::type::BIN)
     {
         m_iErrorCode = 3;

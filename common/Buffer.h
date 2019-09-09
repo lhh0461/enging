@@ -1,6 +1,8 @@
 #ifndef __BUFFER__
 #define __BUFFER__
 
+#include <stddef.h>
+#include <stddef.h>
 
 class CBuffer
 {
@@ -9,12 +11,13 @@ public:
         BUFFER_INIT_SIZE = 10240,
     };
 public:
-    CBuffer(size_t initsz = MSGPACK_SBUFFER_INIT_SIZE);
+    CBuffer(size_t initsz = BUFFER_INIT_SIZE);
     CBuffer(const char *buf, size_t len);
     CBuffer(CBuffer&& other);
     ~CBuffer();
     CBuffer(const CBuffer&) = delete;
     CBuffer & operator=(const CBuffer &) = delete;
+    CBuffer & operator=(CBuffer&& other);
 public:
     char* GetData() { return m_data; }
     const char* GetData() const { return m_data; }

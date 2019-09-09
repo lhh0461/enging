@@ -1,5 +1,9 @@
-#ifndef __CONN_CTX__
-#define __CONN_CTX__
+#ifndef __CONN_STATE__
+#define __CONN_STATE__
+
+#include <list>
+
+#include "Buffer.h"
 
 //连接的类型
 enum eConnType
@@ -8,25 +12,22 @@ enum eConnType
     SERVER_TYPE= 2,
 };
 
-class CConnCtx 
+class CConnState 
 {
 public:
-    CConnCtx();
-    CConnCtx();
-    ~CConnCtx();
+    CConnState();
+    ~CConnState();
     CBuffer & GetRecvBuf() { return m_RecvBuf; };
     CBuffer & GetSendBuf() { return m_SendBuf; };
     std::list<CPackage *> & GetRecvPackList() { return m_RecvPackList; };
     std::list<CPackage *> & GetSendPackList() { return m_SendPackList; };
 private:
-    int m_type;
-
+    int m_ConnType;
     CBuffer m_SendBuf;
     CBuffer m_RecvBuf;
-
     std::list<CPackage *> m_RecvPackList;
     std::list<CPackage *> m_SendPackList;
 };
 
-#endif //__CONN_CTX__
+#endif //__CONN_STATE__
 

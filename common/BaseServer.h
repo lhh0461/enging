@@ -2,8 +2,14 @@
 #define __BASE_SERVER__
 
 #include <unordered_map>
-#include "Package.h"
 
+#include "Package.h"
+#include "Rpc.h"
+#include "ConfigParser.h"
+#include "ConnState.h"
+
+namespace XEngine
+{
 
 class CBaseServer
 {
@@ -14,12 +20,11 @@ public:
     };
 public:
     CBaseServer();
-    ~CBaseServer();
     virtual ~CBaseServer();
     virtual void Init();
     virtual void Run();
 protected:
-    virtual int FromRpcCall(const CPackage *package);
+    virtual int FromRpcCall(CPackage *package);
 private:
     void HandleNewConnection();
     void AddFdToEpoll(int fd);
@@ -29,11 +34,13 @@ private:
     int m_epoll_fd; 
     int m_listen_fd; 
     int m_vfd; 
-    int m_tick; 
+    int m_tick;
     CRpc *m_Rpc;
     CConfigParser *m_Config;
-    std::unordered_map<int, CClientCtx *> m_ConnStat;
+    std::unordered_map<int, CConnState *> m_ConnStat;
 };
+
+}
 
 #endif //__BASE_SERVER__
 

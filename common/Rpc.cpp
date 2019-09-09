@@ -11,13 +11,12 @@
 #include <tinyxml2.h>
 
 #include "Rpc.h"
+#include "Package.h"
 #include "Script.h"
 
 using namespace std;
 using namespace tinyxml2;
 using namespace XEngine;
-
-CRpc *g_Rpc;
 
 CRpc::CRpc()
 {

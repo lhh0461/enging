@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <cstring>
+#include <new>
 #include "Buffer.h"
 
 CBuffer::CBuffer(size_t initsz):
@@ -14,7 +17,7 @@ m_size(0), m_alloc(initsz), m_data(NULL)
 CBuffer::CBuffer(const char *buf, size_t len):
 m_size(len), m_alloc(len), m_data(NULL)
 {
-    if (buf != NULL && initsz > 0) {
+    if (buf != NULL && len > 0) {
         m_data = (char*)::malloc(len);
         if(!m_data) {
             throw std::bad_alloc();
