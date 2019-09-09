@@ -213,7 +213,7 @@ int CRpc::PackField(eRpcFieldType field, PyObject *item, CPackage *package)
 
     switch(field) {
         case RPC_INT:
-            packer.pack(PyLong_AsLong(item));
+            package->PackInt(PyLong_AsLong(item));
             break;
         case RPC_STRING: 
             {
@@ -221,6 +221,8 @@ int CRpc::PackField(eRpcFieldType field, PyObject *item, CPackage *package)
                 const char *str = PyUnicode_AsUTF8AndSize(item, &size);
                 packer.pack_str((uint32_t)size);
                 packer.pack_str_body(str, (uint32_t)size);
+                package->PackString(PyLong_AsLong(item));
+                bool PackString(const std::string & val);
                 break;
             }
         case RPC_FLOAT:
