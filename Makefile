@@ -1,4 +1,4 @@
-PROJECT=server
+PROJECT=engine
 CC=gcc
 CFLAGS=-W -g
 
@@ -34,13 +34,13 @@ STATIC_LIBS=-lpython3.5m \
 
 all:$(C_OBJ_FILES) $(CXX_OBJ_FILES)
 	#$(CC) $(CFLAGS) $(C_OBJ_FILES) $(CXX_OBJ_FILES) -o $(PROJECT) $(LIBS) $(STATIC_LIBS) $(PKG_FLAG) $(LINK)
-	$(CXX) $(CFLAGS) $(CXX_OBJ_FILES) $(CXX_OBJ_FILES) -o $(PROJECT)
+	$(CXX) $(CFLAGS) $(CXX_OBJ_FILES) -o $(PROJECT) $(LIBS) $(STATIC_LIBS)
 
 $(SRC_DIR)/%.o:$(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) $< -c -o $@ $(INC_FILES) $(LIBS) $(STATIC_LIBS) $(PKG_FLAG)
 
 $(SRC_DIR)/%.o:$(SRC_DIR)/%.cpp
-	$(CXX) $(CXXFLAGS) $< -c -o $@ $(INC_FILES) $(LIBS) $(STATIC_LIBS)
+	$(CXX) $(CXXFLAGS) $< -c -o $@ $(INC_FILES)
 
 .PHONY:clean rpc
 clean:

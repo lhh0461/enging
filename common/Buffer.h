@@ -15,11 +15,11 @@ public:
 public:
     CBuffer(size_t initsz = BUFFER_INIT_SIZE);
     CBuffer(const char *buf, size_t len);
-    CBuffer(CBuffer&& other);
+    CBuffer(CBuffer& other);
     ~CBuffer();
     CBuffer(const CBuffer&) = delete;
     CBuffer & operator=(const CBuffer &) = delete;
-    CBuffer & operator=(CBuffer&& other);
+    CBuffer & operator=(CBuffer& other);
 public:
     char* GetData() { return m_data; }
     const char* GetData() const { return m_data; }
