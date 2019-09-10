@@ -47,4 +47,4 @@ clean:
 	-rm $(PROJECT)
 	-rm -rf $(SRC_DIR)/*.o
 rpc:
-	@python tools/parse_rpc.py
+	cd proto/def && protoc --proto_path=./ * --python_out=../output
