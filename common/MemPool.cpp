@@ -1,3 +1,4 @@
+/*
 #include <stdio.h>
 #include "MemPool.h"
 
@@ -43,3 +44,4 @@ int main()
 
     delete pool;
 }
+*/

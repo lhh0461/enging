@@ -4,6 +4,10 @@
 #include <list>
 
 #include "Buffer.h"
+#include "Package.h"
+
+namespace XEngine
+{
 
 //连接的类型
 enum eConnType
@@ -28,6 +32,8 @@ private:
     std::list<CPackage *> m_RecvPackList;
     std::list<CPackage *> m_SendPackList;
 };
+
+}
 
 #endif //__CONN_STATE__
 

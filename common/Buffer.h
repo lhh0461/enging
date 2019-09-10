@@ -2,7 +2,9 @@
 #define __BUFFER__
 
 #include <stddef.h>
-#include <stddef.h>
+
+namespace XEngine
+{
 
 class CBuffer
 {
@@ -33,4 +35,7 @@ private:
     size_t m_alloc;
 };
 
+}
+
 #endif //__BUFFER__
+

@@ -16,7 +16,9 @@
 
 using namespace std;
 using namespace tinyxml2;
-using namespace XEngine;
+
+namespace XEngine
+{
 
 CRpc::CRpc()
 {
@@ -36,10 +38,6 @@ CRpc::~CRpc()
 int CRpc::Init(const string & cCfgPath)
 {
     ParseCfg(cCfgPath);
-    for (auto it = m_RpcTable.begin(); it != m_RpcTable.end(); it++) {
-        stRpcFunction *pFunc = it->second;
-        printf("type=%d,pid=%d,name=%s,module=%s\n", pFunc->type, pFunc->pid, pFunc->name.c_str(), pFunc->module.c_str());
-    }
 }
 
 eRpcFieldType CRpc::GetArgTypeByName(const string & name)
@@ -154,7 +152,7 @@ void CRpc::ParseCfg(const string &cCfgPath)
     lRpcList.sort(_CompareFunc);
     RPC_PID pid = 1;
     for (auto it : lRpcList) {
-        m_Name2Pid[it->name] = pid;
+        m_Name2Pid.insert(make_pair(it->name, pid));
         it->pid = pid;
         m_RpcTable[pid] = it;
         pid++;
@@ -219,28 +217,24 @@ int CRpc::PackField(eRpcFieldType field, PyObject *item, CPackage *package)
             {
                 Py_ssize_t size; 
                 const char *str = PyUnicode_AsUTF8AndSize(item, &size);
-                packer.pack_str((uint32_t)size);
-                packer.pack_str_body(str, (uint32_t)size);
-                package->PackString(PyLong_AsLong(item));
-                bool PackString(const std::string & val);
+                package->PackString(str, size);
                 break;
             }
         case RPC_FLOAT:
-            packer.pack(PyFloat_AS_DOUBLE(item));
+            package->PackFloat(PyFloat_AS_DOUBLE(item));
             break;
         case RPC_PB:
             {
                 const char *str = PyBytes_AsString(item);
                 Py_ssize_t size = PyBytes_Size(item);
-                packer.pack_bin((uint32_t)size);
-                packer.pack_bin_body(str, (uint32_t)size);
+                package->PackBytes(str, size);
                 break;
             }
         case RPC_BOOL:
             if (PyBool_Check(item)) {
-                packer.pack(item == Py_True ? true : false);
+                package->PackBool(item == Py_True ? true : false);
             } else if (PyLong_CheckExact(item)) {
-                packer.pack(PyLong_AsLong(item) > 0 ? true : false);
+                package->PackBool(PyLong_AsLong(item) > 0 ? true : false);
             }
             break;
         default:
@@ -269,11 +263,10 @@ int CRpc::Pack(RPC_PID pid, PyObject *obj, CPackage *package)
         return -1;
     }
     
-    msgpack::packer<msgpack::sbuffer> packer(sbuf);
-    packer.pack(pid);
+    package->PackInt(pid);
     int i = 0;
     for (auto iter : pFunction->args) {
-        if (this->PackField(iter, PyTuple_GetItem(obj, i++), packer) != 0) return -1;
+        if (this->PackField(iter, PyTuple_GetItem(obj, i++), package) != 0) return -1;
     }
 
     return 0;
@@ -281,7 +274,7 @@ int CRpc::Pack(RPC_PID pid, PyObject *obj, CPackage *package)
 
 //return obj 正常
 //return null 异常
-PyObject *CRpc::UnPackField(eRpcFieldType field, const CPackage *package)
+PyObject *CRpc::UnPackField(eRpcFieldType field, CPackage *package)
 {
     switch(field) {
         case RPC_INT:
@@ -300,7 +293,7 @@ PyObject *CRpc::UnPackField(eRpcFieldType field, const CPackage *package)
                 if (package->GetErrCode() > 0) {
                     return NULL;
                 }
-                return PyUnicode_FromStringAndSize(val.c_str(), val.size);
+                return PyUnicode_FromStringAndSize(val.c_str(), val.size());
             }
         case RPC_PB:
             {
@@ -309,7 +302,7 @@ PyObject *CRpc::UnPackField(eRpcFieldType field, const CPackage *package)
                 if (package->GetErrCode() > 0) {
                     return NULL;
                 }
-                return PyBytes_FromStringAndSize(val.c_str(), val.size);
+                return PyBytes_FromStringAndSize(val.c_str(), val.size());
             }
         case RPC_FLOAT:
             {
@@ -335,7 +328,7 @@ PyObject *CRpc::UnPackField(eRpcFieldType field, const CPackage *package)
 }
 
 //unpack buf to obj data
-PyObject * CRpc::UnPack(RPC_PID pid,const CPackage *package)
+PyObject * CRpc::UnPack(RPC_PID pid, CPackage *package)
 {
     PyObject *obj;
     PyObject *field;
@@ -354,12 +347,12 @@ PyObject * CRpc::UnPack(RPC_PID pid,const CPackage *package)
     return obj;
 }
 
-int CRpc::Dispatch(const CPackage *package)
+int CRpc::Dispatch(CPackage *package)
 {
     PyObject *obj;
 
     RPC_PID pid;
-    package->Unpack(pid);
+    package->UnPackInt(pid);
     if (package->GetErrCode() > 0) {
         return -1;
     }
@@ -388,5 +381,7 @@ int CRpc::Dispatch(const CPackage *package)
 
 int CRpc::RpcCall(const CPackage *package)
 {
+
+}
 
 }

@@ -34,7 +34,6 @@ STATIC_LIBS=-lpython3.5m \
 
 all:$(C_OBJ_FILES) $(CXX_OBJ_FILES)
 	#$(CC) $(CFLAGS) $(C_OBJ_FILES) $(CXX_OBJ_FILES) -o $(PROJECT) $(LIBS) $(STATIC_LIBS) $(PKG_FLAG) $(LINK)
-	echo "cpp files",$(CXX_OBJ_FILES)
 	$(CXX) $(CFLAGS) $(CXX_OBJ_FILES) $(CXX_OBJ_FILES) -o $(PROJECT)
 
 $(SRC_DIR)/%.o:$(SRC_DIR)/%.c

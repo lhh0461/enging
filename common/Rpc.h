@@ -3,14 +3,13 @@
 
 #include <Python.h>
 #include <list>
-#include <map>
+#include <vector>
+#include <unordered_map>
 #include <string>
-
 #include <tinyxml2.h>
 
 #include "Package.h"
 
-using namespace std;
 using namespace tinyxml2;
 
 namespace XEngine
@@ -45,10 +44,10 @@ struct stRpcFunction
 {
     eRpcType type;
     RPC_PID pid;
-    string name;
-    string module;
+    std::string name;
+    std::string module;
     eRpcDeamonType deamon;
-    list<eRpcFieldType> args;
+    std::list<eRpcFieldType> args;
 };
 
 class CRpc
@@ -56,26 +55,26 @@ class CRpc
 public:
     CRpc();
     ~CRpc();
-    int Init(const string & cCfgPath);
-    RPC_PID GetPidByName(const string & cFuncName);
-    int Pack(RPC_PID pid, PyObject *obj, msgpack::sbuffer &sbuf);
-    PyObject *UnPack(const char *buf, size_t len);
-    PyObject *UnPack(RPC_PID pid, msgpack::unpacker &unpacker);
-    int Dispatch(const CPackage *package);
+    int Init(const std::string & cCfgPath);
+    RPC_PID GetPidByName(const std::string & cFuncName);
+    int Pack(RPC_PID pid, PyObject *obj, CPackage *package);
+    PyObject *UnPack(RPC_PID pid, CPackage *package);
+    int Dispatch(CPackage *package);
+    int RpcCall(const CPackage *package);
 private:
     stRpcFunction *GetFunctionById(RPC_PID pid);
     int PackField(eRpcFieldType field, PyObject *item, CPackage *package);
-    PyObject *UnPackField(eRpcFieldType field, msgpack::unpacker &unpacker);
+    PyObject *UnPackField(eRpcFieldType field, CPackage *package);
 private:
     stRpcFunction *ParseFunc(XMLElement *elem, eRpcType type);
-    void ParseSection(XMLElement *root, eRpcType type, const char * name, std::list<stRpcFunction *> &lRpcList);
-    void ParseCfg(const string &cfg);
-    eRpcFieldType GetArgTypeByName(const string & name);
+    void ParseSection(XMLElement *root, eRpcType type, const char *name, std::list<stRpcFunction *> &lRpcList);
+    void ParseCfg(const std::string &cfg);
+    eRpcFieldType GetArgTypeByName(const std::string & name);
     int CheckFieldType(int field_type, PyObject *item);
-    int GetRpcCfgFiles(const char *basePath, vector<string> & filelist);
+    int GetRpcCfgFiles(const char *basePath, std::vector<std::string> & filelist);
 private:
-    map<string, RPC_PID> m_Name2Pid;
-    map<RPC_PID, stRpcFunction *> m_RpcTable;
+    std::unordered_map<std::string, RPC_PID> m_Name2Pid;
+    std::unordered_map<RPC_PID, stRpcFunction *> m_RpcTable;
 };
 
 }

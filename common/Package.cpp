@@ -5,6 +5,9 @@
 #include "Buffer.h"
 #include "Log.h"
 
+namespace XEngine
+{
+
 //for pack
 CPackage::CPackage(size_t size):
     m_Buff(NULL), m_iUnpackOffset(0), m_iErrorCode(0)
@@ -75,6 +78,20 @@ bool CPackage::UnPackInt(int64_t & value)
     return true;
 }
 
+bool CPackage::UnPackInt(uint16_t & value)
+{
+    msgpack::object obj;
+    UNPACK_OBJ(obj);
+    if (obj.type != msgpack::type::NEGATIVE_INTEGER)
+    {
+        m_iErrorCode = 3;
+        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
+        return false;
+    }
+    value = obj.via.i64;
+    return true;
+}
+
 bool CPackage::UnPackFloat(double & val)
 {
     msgpack::object obj;
@@ -126,6 +143,14 @@ bool CPackage::PackCmd(uint16_t cmd)
     
 }
 
+bool CPackage::PackString(const char * ptr, size_t len)
+{
+    msgpack::packer<CBuffer> packer(m_Buff);
+    packer.pack_str((uint32_t)len);
+    packer.pack_str_body(ptr, (uint32_t)len);
+    return true;
+}
+
 bool CPackage::PackString(const std::string & val)
 {
     msgpack::packer<CBuffer> packer(m_Buff);
@@ -133,24 +158,32 @@ bool CPackage::PackString(const std::string & val)
     return true;
 }
 
-bool CPackage::PackInt(int64_t & val)
+bool CPackage::PackInt(int64_t val)
 {
     msgpack::packer<CBuffer> packer(m_Buff);
     packer.pack(val);
     return true;
 }
 
-bool CPackage::PackFloat(double & val)
+bool CPackage::PackFloat(double val)
 {
     msgpack::packer<CBuffer> packer(m_Buff);
     packer.pack(val);
     return true;
 }
 
-bool CPackage::PackBool(bool & val)
+bool CPackage::PackBool(bool val)
 {
     msgpack::packer<CBuffer> packer(m_Buff);
     packer.pack(val);
+    return true;
+}
+
+bool CPackage::PackBytes(const char * ptr, size_t len)
+{
+    msgpack::packer<CBuffer> packer(m_Buff);
+    packer.pack_bin((uint32_t)len);
+    packer.pack_bin_body(ptr, (uint32_t)len);
     return true;
 }
 
@@ -163,6 +196,8 @@ bool CPackage::PackBytes(const std::string & val)
 
 bool CPackage::PackEnd(std::string & val)
 {
+
+}
 
 }
 

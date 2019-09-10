@@ -3,6 +3,9 @@
 #include <new>
 #include "Buffer.h"
 
+namespace XEngine
+{
+
 CBuffer::CBuffer(size_t initsz):
 m_size(0), m_alloc(initsz), m_data(NULL)
 {
@@ -83,4 +86,6 @@ void CBuffer::Expand(size_t len)
     m_data = static_cast<char*>(tmp);
     m_alloc = nsize;
 }
+
+}   // namespace XEngine
 
