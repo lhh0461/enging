@@ -1,16 +1,17 @@
 #include <sys/epoll.h>
+#include <string>
+#include <iostream>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <string>
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <iostream>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include "BaseServer.h"
 #include "Log.h"
+#include "NetTool.h"
 #include "Cmd.h"
 #include "ConfigParser.h"
 #include "Package.h"
@@ -34,7 +35,7 @@ CBaseServer::~CBaseServer()
 void CBaseServer::Init()
 {
     if (m_Config->Parser("./config.ini") == false) {
-        LOG_ERROR("CBaseServer::Init desc=Init Fail");
+        LOG_ERROR("server init fail");
         exit(1);
     }
 
@@ -43,16 +44,13 @@ void CBaseServer::Init()
 
     m_epoll_fd = epoll_create(MAX_EVENT); 
     
-    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    int fd = Listen(ip.c_str(), port, 1024);
+    if (fd < 0) {
+        LOG_ERROR("listen port fail;port=%d", port);
+        exit(1);
+    }
 
-    //将套接字和IP、端口绑定
-    struct sockaddr_in serv_addr;
-    memset(&serv_addr, 0, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;  //使用IPv4地址
-    serv_addr.sin_addr.s_addr = inet_addr(ip.c_str());  //具体的IP地址
-    serv_addr.sin_port = htons(port);  //端口
-    bind(fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
-    listen(fd, 1024);
+    LOG_INFO("server init success");
 
     m_listen_fd = fd;
     AddFdToEpoll(fd);
@@ -83,16 +81,22 @@ void CBaseServer::Run()
 
 void CBaseServer::HandleNewConnection()
 {
-    struct sockaddr addr;
+    struct sockaddr_in addr;
     socklen_t addrlen;
     int conn_fd = accept(m_listen_fd, (struct sockaddr *) &addr, &addrlen);
+    if (conn_fd < 0) {
+        LOG_ERROR("accept new fd fail");
+        return;
+    }
 
-    int flag = fcntl(conn_fd, F_GETFL, 0); 
-    fcntl(conn_fd, F_SETFL, flag | O_NONBLOCK);
+    SetBlock(conn_fd, 0, NULL);
 
     AddFdToEpoll(conn_fd);
 
-    CConnState *client = new CConnState();
+    const char *ip = inet_ntoa(addr.sin_addr);
+    int port = addr.sin_port;
+
+    CConnState *client = new CConnState(ip, port, CConnState::CONN_CLIENT_FLAG);
     m_ConnStat.insert(std::make_pair(conn_fd, client));
 }
 
@@ -108,15 +112,14 @@ void CBaseServer::HandleRecvMsg(int fd)
 {
     for (;;)
     {
-        /*
         auto it = m_ConnStat.find(fd);
         if (it != m_ConnStat.end()) {
-            CConnCtx *ctx = it->second;
-            CBuffer *pRecvBuf = ctx->GetRecvBuf();
-            std::list<CPackage *> recvList = ctx->GetRecvPackList(); 
-            if (ctx != NULL) {
-                size_t left = pRecvBuf->GetBuffSize() - pRecvBuf->GetDataLen();
-                size_t num = ::recv(fd, pRecvBuf->GetBuff(), left, 0);
+            CConnState *conn = it->second;
+            if (conn != NULL) {
+                char *pRecvBuf = conn->GetRecvBuf();
+                int iRecvBufPos = conn->GetRecvBufPos();
+                int iRecvBufLeftSize = conn->GetRecvBufLeftSize();
+                size_t num = ::recv(fd, pRecvBuf + iRecvBufPos, iRecvBufLeftSize, 0);
                 if (num == -1) {
                     if (errno == EINTR) {
                         continue;
@@ -128,6 +131,7 @@ void CBaseServer::HandleRecvMsg(int fd)
                     break;
                 }
                 else if (num > 0) {
+                    /*
                     size_t totallen = pRecvBuf->SetDataLen(pRecvBuf->GetDataLen() + num);
                     if (totallen < HEAD_SIZE) {
                          //包头还没读取够
@@ -147,10 +151,10 @@ void CBaseServer::HandleRecvMsg(int fd)
                     } else {
                         break;
                     }
+                    */
                 }
             }
         }
-        */
     }
 }
 
@@ -180,5 +184,5 @@ int CBaseServer::FromRpcCall(CPackage *package)
     }
 }
 
-}   // namespace XEngine
+}
 

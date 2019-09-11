@@ -3,23 +3,22 @@
 
 #include <stddef.h>
 #include <assert.h>
-#include <stdio.h>
 #include <list>
 
 namespace XEngine
 {
 
 template <typename T>
-class MemPool
+class CMemPool
 {
 public:
     const int DEFAULT_MALLOC_SIZE = 32;
 public:
-    MemPool(): MemPool(DEFAULT_MALLOC_SIZE) {}
-    MemPool(size_t size) { NewBlock(size); }
-    MemPool(const MemPool &) = delete; //阻止拷贝
-    MemPool &operator=(const MemPool &)  = delete; //阻止赋值
-    ~MemPool()
+    CMemPool(): CMemPool(DEFAULT_MALLOC_SIZE) {}
+    CMemPool(size_t size) { NewBlock(size); }
+    CMemPool(const CMemPool &) = delete;
+    CMemPool &operator=(const CMemPool &) = delete;
+    ~CMemPool()
     {
         m_FreeList.clear();
         auto it = m_BlockList.begin();
@@ -29,7 +28,6 @@ public:
         m_BlockList.clear();
         m_TotalSize = 0;
         m_TotalBytes = 0;
-        printf("~MemPool\n");   
     }
 private:
     int NewBlock(size_t block_size)
@@ -50,7 +48,6 @@ private:
 
         m_TotalSize += block_size;
         m_TotalBytes += block_size*sizeof(T);
-        printf("NewBlock block_size=%ld,total_size=%ld,total_bytes=%ld\n", block_size, m_TotalSize, m_TotalBytes);   
         return 1;
     }
 public:
@@ -69,7 +66,6 @@ public:
             ret = m_FreeList.front();
             m_FreeList.pop_front();
         }
-        printf("Malloc\n");   
 
         return ret;
     }
@@ -92,6 +88,6 @@ private:
     size_t m_TotalBytes;
 };
 
-};
+}
 
 #endif //__MEM_POOL_

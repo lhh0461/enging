@@ -33,7 +33,6 @@ STATIC_LIBS=-lpython3.5m \
 	-ltinyxml2 \
 
 all:$(C_OBJ_FILES) $(CXX_OBJ_FILES)
-	#$(CC) $(CFLAGS) $(C_OBJ_FILES) $(CXX_OBJ_FILES) -o $(PROJECT) $(LIBS) $(STATIC_LIBS) $(PKG_FLAG) $(LINK)
 	$(CXX) $(CFLAGS) $(CXX_OBJ_FILES) -o $(PROJECT) $(LIBS) $(STATIC_LIBS)
 
 $(SRC_DIR)/%.o:$(SRC_DIR)/%.c
