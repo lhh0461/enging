@@ -31,14 +31,15 @@ public:
     char *GetRecvBuf() { return m_RecvBuf; };
     int GetRecvBufPos() { return m_RecvBufPos; };
     int GetRecvBufLeftSize() { return RECV_BUF_SIZE - m_RecvBufPos; };
+    int SetRecvBufLen(int len) { m_RecvBufPos = len; };
 
     char *GetSendBuf() { return m_SendBuf; };
     int GetSendBufPos() { return m_SendBufPos; };
     int GetSendBufLeftSize() { return SEND_BUF_SIZE - m_SendBufPos; };
+    int SetSendBufLen(int len) { m_SendBufPos = len; };
 
     std::list<CPackage *> & GetRecvPackList() { return m_RecvPackList; };
     std::list<CPackage *> & GetSendPackList() { return m_SendPackList; };
-    //void *operator new(size_t size);
 private:
     int m_ConnFlag;
     std::string m_Ip;
