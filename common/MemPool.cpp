@@ -1,7 +1,5 @@
-/*
 #include <stdio.h>
 #include "MemPool.h"
-
 
 struct test {
     int a;
@@ -13,9 +11,9 @@ struct test {
     }
 };
 
-int main()
+int test()
 {
-    XEngine::MemPool<struct test> *pool = new XEngine::MemPool<struct test>(10);
+    XEngine::CMemPool<struct test> *pool = new XEngine::CMemPool<struct test>(10);
     std::list<struct test*> l;
     for (int i = 0; i < 20; i++) {
         struct test *t = pool->Malloc();
@@ -44,4 +42,3 @@ int main()
 
     delete pool;
 }
-*/

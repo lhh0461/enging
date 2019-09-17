@@ -87,5 +87,5 @@ void CBuffer::Expand(size_t len)
     m_alloc = nsize;
 }
 
-}   // namespace XEngine
+}
 

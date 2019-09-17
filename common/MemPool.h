@@ -1,8 +1,6 @@
 #ifndef __MEM_POOL_
 #define __MEM_POOL_
 
-#include <stddef.h>
-#include <assert.h>
 #include <list>
 
 namespace XEngine
@@ -11,8 +9,10 @@ namespace XEngine
 template <typename T>
 class CMemPool
 {
-public:
-    const int DEFAULT_MALLOC_SIZE = 32;
+private:
+    enum {
+        DEFAULT_MALLOC_SIZE = 32,
+    };
 public:
     CMemPool(): CMemPool(DEFAULT_MALLOC_SIZE) {}
     CMemPool(size_t size) { NewBlock(size); }
@@ -61,7 +61,6 @@ public:
             }
         }
 
-        assert(!m_FreeList.empty());
         if (!m_FreeList.empty()) {
             ret = m_FreeList.front();
             m_FreeList.pop_front();

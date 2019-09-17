@@ -64,7 +64,8 @@ bool CPackage::UnPackString(std::string & val)
     return true;
 }
 
-bool CPackage::UnPackInt(int64_t & value)
+template <typename T>
+bool CPackage::UnPackInt(T & value)
 {
     msgpack::object obj;
     UNPACK_OBJ(obj);
@@ -74,7 +75,7 @@ bool CPackage::UnPackInt(int64_t & value)
         LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
         return false;
     }
-    value = obj.via.i64;
+    value = (T)obj.via.i64;
     return true;
 }
 
@@ -138,9 +139,11 @@ bool CPackage::UnPackBytes(std::string & val)
 //-----------------unpack end--------------------
 
 //-----------------pack begin--------------------
-bool CPackage::PackCmd(uint16_t cmd)
+bool CPackage::PackCmd(CMD_ID cmd)
 {
-    
+    msgpack::packer<CBuffer> packer(cmd);
+    packer.pack(val);
+    return true;
 }
 
 bool CPackage::PackString(const char * ptr, size_t len)
@@ -194,9 +197,9 @@ bool CPackage::PackBytes(const std::string & val)
     return true;
 }
 
-bool CPackage::PackEnd(std::string & val)
+bool CPackage::PackEnd()
 {
-
+    
 }
 
 }

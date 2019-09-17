@@ -18,39 +18,54 @@ class CBuffer;
 class CPackage
 {
 public:
+    typedef uint16_t PKG_CMD_TYPE;
+    typedef uint32_t PKG_HEADER_TYPE;
+public:
     enum {
-        DEFUALT_PACKAGE_SIZE = 10240,
-        HEADER_SIZE = 4,
-        RESERVE_SIZE = 2,
-        CMD_SIZE = 2,
+        PKG_DEFUALT_SIZE = 10240,
     };
 public:
-    CPackage(size_t size = DEFUALT_PACKAGE_SIZE);
+    CPackage(size_t size = PKG_DEFUALT_SIZE); //for pack
     CPackage(const char *buf, size_t size); //for unpack
     ~CPackage();
 public:
-    bool UnPackCmd(uint16_t & cmd);
+    bool UnPackCmd(CMD_ID & cmd);
     bool UnPackString(std::string & val);
+    bool UnPackInt(int8_t & val);
+    bool UnPackInt(int16_t & val);
+    bool UnPackInt(int32_t & val);
     bool UnPackInt(int64_t & val);
+    bool UnPackInt(uint8_t & val);
     bool UnPackInt(uint16_t & val);
+    bool UnPackInt(uint32_t & val);
+    bool UnPackInt(uint64_t & val);
+    bool UnPackFloat(float & val);
     bool UnPackFloat(double & val);
     bool UnPackBool(bool & val);
     bool UnPackBytes(std::string & val);
-    bool UnPackEnd(std::string & str);
+    bool UnPackEnd();
 public:
-    bool PackCmd(uint16_t cmd);
+    bool PackCmd(CMD_ID cmd);
     bool PackString(const std::string & val);
     bool PackString(const char * ptr, size_t len);
+    bool PackInt(uint8_t val);
+    bool PackInt(uint16_t val);
+    bool PackInt(uint32_t val);
+    bool PackInt(uint64_t val);
+    bool PackInt(int8_t val);
+    bool PackInt(int16_t val);
+    bool PackInt(int32_t val);
     bool PackInt(int64_t val);
+    bool PackFloat(float val);
     bool PackFloat(double val);
     bool PackBool(bool val);
     bool PackBytes(const char * ptr, size_t len);
     bool PackBytes(const std::string & val);
-    bool PackEnd(std::string & val);
+    bool PackEnd();
 public:
-    const CBuffer * GetBuffer() { return m_Buff; };
-    uint16_t GetCmd() { return 1; };
-    //uint16_t GetSeq() { return 1; };
+    const char * GetBuf() { return m_Buff->GetData(); };
+    size_t GetLen() { return m_Buff->GetDataSIze(); };
+    CMD_ID GetCmd() { return *(CMD_ID *)m_Buff->GetData(); };
     int GetErrCode() { return m_iErrorCode; };
 private:
     CBuffer *m_Buff;

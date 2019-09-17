@@ -1,11 +1,11 @@
 #include <sys/epoll.h>
-#include <string>
+//#include <string>
 #include <iostream>
-#include <sys/types.h>
+//#include <sys/types.h>
 #include <sys/socket.h>
-#include <errno.h>
-#include <unistd.h>
-#include <fcntl.h>
+//#include <errno.h>
+//#include <unistd.h>
+//#include <fcntl.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -76,6 +76,7 @@ void CBaseServer::Run()
                 //}
             }
         }
+        this->HandlePackage();
     }
 }
 
@@ -116,11 +117,10 @@ void CBaseServer::HandleRecvMsg(int fd)
         if (it != m_ConnStat.end()) {
             CConnState *conn = it->second;
             if (conn != NULL) {
-                char *pRecvBuf = conn->GetRecvBuf();
-                int iRecvBufPos = conn->GetRecvBufPos();
+                char *pRecvPosBuf = conn->GetRecvPosBuf();
                 int iRecvBufLeftSize = conn->GetRecvBufLeftSize();
-                size_t num = ::recv(fd, pRecvBuf + iRecvBufPos, iRecvBufLeftSize, 0);
-                if (num == -1) {
+                size_t num = ::recv(fd, pRecvPosBuf, iRecvBufLeftSize, 0);
+                if (num == (size_t)-1) {
                     if (errno == EINTR) {
                         continue;
                     }
@@ -131,27 +131,29 @@ void CBaseServer::HandleRecvMsg(int fd)
                     break;
                 }
                 else if (num > 0) {
-                    /*
-                    size_t totallen = pRecvBuf->SetDataLen(pRecvBuf->GetDataLen() + num);
-                    if (totallen < HEAD_SIZE) {
+                    size_t totallen = conn->SetRecvBufLen(conn->GetRecvBufPos() + num);
+                    if (totallen < CPackage::PKG_HEADER_SIZE) {
                          //包头还没读取够
                          break;
                     }
-                    size_t packsize = *(uint64_t *)pRecvBuf->GetBuff();
+                    //包还没读取够
+                    size_t packsize = *(uint64_t *)conn->GetRecvPosBuf();
                     if (totallen < packsize) {
                          break;
                     }
                     
-                    CPackage *package = new CPackage(pRecvBuf->GetBuff() + sizeof(uint64_t), totallen)
-                    recvList.push_back(package);
+                    CPackage *package = new CPackage(conn->GetRecvPosBuf() + sizeof(uint64_t), packsize);
+                    conn->GetRecvPackList().push_back(package);
 
-                    if (num == left) {
-                        //TODO 也许还有数据没读取完毕
+                    if (num == iRecvBufLeftSize) {
+                        //也许还有数据没读取完毕
                         continue;
                     } else {
                         break;
                     }
-                    */
+                }
+                else {
+                    //对端已经关闭连接
                 }
             }
         }
