@@ -131,18 +131,18 @@ void CBaseServer::HandleRecvMsg(int fd)
                     break;
                 }
                 else if (num > 0) {
-                    size_t totallen = conn->SetRecvBufLen(conn->GetRecvBufPos() + num);
-                    if (totallen < CPackage::PKG_HEADER_SIZE) {
+                    size_t totallen = conn->SetRecvBufLen(pRecvPosBuf + num);
+                    if (totallen < sizeof(CPackage::PKG_HEADER_TYPE)) {
                          //包头还没读取够
                          break;
                     }
                     //包还没读取够
-                    size_t packsize = *(uint64_t *)conn->GetRecvPosBuf();
+                    size_t packsize = *(CPackage::PKG_HEADER_TYPE *)pRecvPosBuf;
                     if (totallen < packsize) {
                          break;
                     }
                     
-                    CPackage *package = new CPackage(conn->GetRecvPosBuf() + sizeof(uint64_t), packsize);
+                    CPackage *package = new CPackage(pRecvPosBuf, packsize);
                     conn->GetRecvPackList().push_back(package);
 
                     if (num == iRecvBufLeftSize) {

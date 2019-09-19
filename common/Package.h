@@ -29,7 +29,7 @@ public:
     CPackage(const char *buf, size_t size); //for unpack
     ~CPackage();
 public:
-    bool UnPackCmd(CMD_ID & cmd);
+    bool UnPackCmd(PKG_CMD_TYPE & cmd);
     bool UnPackString(std::string & val);
     bool UnPackInt(int8_t & val);
     bool UnPackInt(int16_t & val);
@@ -43,11 +43,10 @@ public:
     bool UnPackFloat(double & val);
     bool UnPackBool(bool & val);
     bool UnPackBytes(std::string & val);
-    bool UnPackEnd();
 public:
-    bool PackCmd(CMD_ID cmd);
-    bool PackString(const std::string & val);
+    bool PackCmd(PKG_CMD_TYPE cmd);
     bool PackString(const char * ptr, size_t len);
+    bool PackString(const std::string & val);
     bool PackInt(uint8_t val);
     bool PackInt(uint16_t val);
     bool PackInt(uint32_t val);
@@ -61,11 +60,10 @@ public:
     bool PackBool(bool val);
     bool PackBytes(const char * ptr, size_t len);
     bool PackBytes(const std::string & val);
-    bool PackEnd();
 public:
-    const char * GetBuf() { return m_Buff->GetData(); };
-    size_t GetLen() { return m_Buff->GetDataSIze(); };
-    CMD_ID GetCmd() { return *(CMD_ID *)m_Buff->GetData(); };
+    const char * GetPkgBuf();
+    size_t GetPkgLen();
+    size_t GetPkgDataLen();
     int GetErrCode() { return m_iErrorCode; };
 private:
     CBuffer *m_Buff;
