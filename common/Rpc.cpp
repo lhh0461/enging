@@ -333,8 +333,14 @@ PyObject * CRpc::UnPack(RPC_PID pid, CPackage *package)
     PyObject *obj;
     PyObject *field;
 
+    fprintf(stderr, "Unpack. pid=%d\n", pid);
+
     const stRpcFunction *pFunction = GetFunctionById(pid);
     obj = PyTuple_New(pFunction->args.size());
+    if (obj == NULL) {
+        fprintf(stderr, "Unpack. pid=%d\n", pid);
+        return NULL;
+    }
 
     int i = 0;
     for (auto iter : pFunction->args) {
@@ -352,11 +358,12 @@ int CRpc::Dispatch(CPackage *package)
     PyObject *obj;
 
     RPC_PID pid;
-    package->UnPackInt(pid);
+    package->UnPackInt<unsigned short>(pid);
     if (package->GetErrCode() > 0) {
         return -1;
     }
 
+    fprintf(stderr, "Dispatch. pid=%d\n", pid);
     const stRpcFunction *pFunction = GetFunctionById(pid);
     if (pFunction == NULL) {
         fprintf(stderr, "CRpc::Dispatch can't find pid function. pid=%d\n", pid);

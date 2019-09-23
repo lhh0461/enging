@@ -33,7 +33,7 @@ int Listen(const char *ip, int port, int backlog)
     return fd;
 }
 
-int Connect(const char *ip, int port, int block = 1)
+int Connect(const char *ip, int port, int block)
 {
     int fd = socket(AF_INET, SOCK_STREAM, 0);
 

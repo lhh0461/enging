@@ -29,21 +29,22 @@ public:
     ~CConnState();
 
 public:
-    //接收缓冲区
+    //接收缓冲区开始位置
     char *GetRecvBuf() { return m_RecvBuf; };
-    char *GetRecvPosBuf() { return m_RecvBuf + m_RecvBufPos; };
+    //缓冲区下次写入字节
+    char *GetRecvCurBuf() { return m_RecvBuf + m_RecvBufPos; };
     int GetRecvBufPos() { return m_RecvBufPos; };
     int GetRecvBufLeftSize() { return RECV_BUF_SIZE - m_RecvBufPos; };
-    int SetRecvBufLen(int len) { m_RecvBufPos = len; };
+    void SetRecvBufLen(int len) { m_RecvBufPos = len; };
     //发送缓冲区
     char *GetSendBuf() { return m_SendBuf; };
-    char *GetSendPosBuf() { return m_SendBuf + m_SendBufPos; };
+    char *GetSendCurBuf() { return m_SendBuf + m_SendBufPos; };
     int GetSendBufPos() { return m_SendBufPos; };
     int GetSendBufLeftSize() { return SEND_BUF_SIZE - m_SendBufPos; };
     int SetSendBufLen(int len) { m_SendBufPos = len; };
 public:
-    std::list<CPackage *> & GetRecvPackList() { return m_RecvPackList; };
-    std::list<CPackage *> & GetSendPackList() { return m_SendPackList; };
+    std::list<CPackage *> * GetRecvPackList() { return m_RecvPackList; };
+    std::list<CPackage *> * GetSendPackList() { return m_SendPackList; };
 public:
     int OnConnect() {};
     int OnDisConnect() {};
@@ -60,8 +61,8 @@ private:
     int m_RecvBufPos;
     CPackage *m_CurPackage;
 private:
-    std::list<CPackage *> m_RecvPackList;
-    std::list<CPackage *> m_SendPackList;
+    std::list<CPackage *> * m_RecvPackList;
+    std::list<CPackage *> * m_SendPackList;
 };
 
 }

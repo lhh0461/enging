@@ -75,3 +75,29 @@ void set_log_switch_level(LOG_LEVEL e_switch_level)
 {
     g_eLogSwitch = e_switch_level;
 }
+
+
+#include "Package.cpp"
+#include <iostream>
+int test_pack()
+{
+    XEngine::CPackage *package = new XEngine::CPackage();
+    std::cout << "len=" << package->GetPkgLen() << std::endl;
+    package->PackCmd((uint16_t)1);
+    package->PackInt((uint16_t)1);
+    package->PackString(std::string("hello"));
+
+    XEngine::CPackage *unpack = new XEngine::CPackage(package->GetPkgBuf() + sizeof(XEngine::CPackage::PKG_HEADER_TYPE), package->GetPkgDataLen());
+    int rpc;
+    package->UnPackInt<>(rpc);
+    int arg;
+    package->UnPackInt(arg);
+    std::string cmd;
+    unpack->UnPackString(cmd);
+    std::cout << cmd << std::endl;
+}
+
+int main()
+{
+    test_pack();
+}

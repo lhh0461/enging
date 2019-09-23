@@ -25,6 +25,7 @@ CBaseServer::CBaseServer():
     m_epoll_fd(0), m_listen_fd(0)
 {
     m_Config = new CConfigParser();
+    m_Rpc = new CRpc();
 }
 
 CBaseServer::~CBaseServer()
@@ -38,6 +39,8 @@ void CBaseServer::Init()
         LOG_ERROR("server init fail");
         exit(1);
     }
+
+    m_Rpc->Init("./rpc/");
 
     std::string ip = m_Config->GetConfig("global", "IP");
     int port = atoi(m_Config->GetConfig("global", "PORT").c_str());
@@ -54,6 +57,8 @@ void CBaseServer::Init()
 
     m_listen_fd = fd;
     AddFdToEpoll(fd);
+
+    Py_Initialize();
 }
 
 void CBaseServer::Run()
@@ -114,49 +119,73 @@ void CBaseServer::HandleRecvMsg(int fd)
     for (;;)
     {
         auto it = m_ConnStat.find(fd);
-        if (it != m_ConnStat.end()) {
-            CConnState *conn = it->second;
-            if (conn != NULL) {
-                char *pRecvPosBuf = conn->GetRecvPosBuf();
-                int iRecvBufLeftSize = conn->GetRecvBufLeftSize();
-                size_t num = ::recv(fd, pRecvPosBuf, iRecvBufLeftSize, 0);
-                if (num == (size_t)-1) {
-                    if (errno == EINTR) {
-                        continue;
-                    }
-                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                        continue;
-                    }
-                    cout << "errno=" << errno << ",errmsg="  << strerror(errno)  << endl;
-                    break;
+        if (it == m_ConnStat.end()) {
+            LOG_ERROR("cant find fd conn stat");
+            continue; 
+        }
+        LOG_INFO("HandleRecvMsg fd=%d", fd);
+        CConnState *conn = it->second;
+        if (conn != NULL) {
+            //剩余的的缓冲区
+            char *pRecvCurBuf = conn->GetRecvCurBuf();
+            int iRecvBufLeftSize = conn->GetRecvBufLeftSize();
+            //读取数据到缓冲区
+            size_t num = ::recv(fd, pRecvCurBuf, iRecvBufLeftSize, 0);
+            if (num == (size_t)-1) {
+                if (errno == EINTR) {
+                    continue;
                 }
-                else if (num > 0) {
-                    size_t totallen = conn->SetRecvBufLen(pRecvPosBuf + num);
-                    if (totallen < sizeof(CPackage::PKG_HEADER_TYPE)) {
-                         //包头还没读取够
-                         break;
-                    }
-                    //包还没读取够
-                    size_t packsize = *(CPackage::PKG_HEADER_TYPE *)pRecvPosBuf;
-                    if (totallen < packsize) {
-                         break;
-                    }
-                    
-                    CPackage *package = new CPackage(pRecvPosBuf, packsize);
-                    conn->GetRecvPackList().push_back(package);
-
-                    if (num == iRecvBufLeftSize) {
-                        //也许还有数据没读取完毕
-                        continue;
-                    } else {
+                if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                    continue;
+                }
+                cout << "errno=" << errno << ",errmsg="  << strerror(errno)  << endl;
+                break;
+            }
+            else if (num > 0) {
+                size_t iTotalLen = conn->GetRecvBufPos() + num;
+                //记录已经处理的字节数
+                size_t iCurrentPos = 0;
+                //数据已经读取到缓冲区，缓冲区中可能包含多个包
+                //逐个逐个去切包
+                //跳出这个循环有两种可能，一种是包头还没读取，二是包没读取够
+                for (;;) {
+                    size_t iLeftDataLen = iTotalLen - iCurrentPos;
+                    pRecvCurBuf = conn->GetRecvCurBuf() + iCurrentPos;
+                    /////目前缓冲区中缓冲的总字节数
+                    //conn->SetRecvBufLen(totallen);
+                    //包头还没读取够
+                    if (iLeftDataLen < sizeof(CPackage::PKG_HEADER_TYPE)) {
                         break;
                     }
+                    //包还没读取够
+                    size_t packsize = *(CPackage::PKG_HEADER_TYPE *)pRecvCurBuf;
+                    if (iTotalLen < packsize) {
+                        break;
+                    }
+
+                    CPackage *package = new CPackage(pRecvCurBuf + sizeof(CPackage::PKG_HEADER_TYPE), packsize);
+
+                    std::list<CPackage *> *recvList = conn->GetRecvPackList(); 
+                    recvList->push_back(package);
+                    cout << "push recv pack list" << endl;
+
+                    iCurrentPos += packsize;
                 }
-                else {
-                    //对端已经关闭连接
+                if (iCurrentPos > 0 && iCurrentPos != iTotalLen) {
+                    memmove(conn->GetRecvBuf(), conn->GetRecvCurBuf() + iCurrentPos, iTotalLen - iCurrentPos);
+                }
+                if (num == iRecvBufLeftSize) {
+                    //也许还有数据没读取完毕
+                    continue;
+                } else {
+                    break;
                 }
             }
+            else {
+                //对端已经关闭连接
+            }
         }
+        break;
     }
 }
 
@@ -164,11 +193,18 @@ void CBaseServer::HandlePackage()
 {
     auto it = m_ConnStat.begin();
     for (; it != m_ConnStat.end(); it++) {
-        std::list<CPackage *> recvList = it->second->GetRecvPackList(); 
-        if (!recvList.empty()) {
-            auto it2 = recvList.begin();
-            for (; it2 != recvList.end(); it2++) {
-                this->FromRpcCall(*it2);
+        CConnState *pConnState = it->second;
+        if (pConnState) {
+            std::list<CPackage *> *recvList = pConnState->GetRecvPackList(); 
+            LOG_INFO("size=%d", recvList->size());
+            while (!recvList->empty()) {
+                CPackage *package = recvList->front();
+                LOG_INFO("FromRpcCall1111 end, package=%p", package);
+                this->FromRpcCall(package);
+                LOG_INFO("FromRpcCall1111 end22, package=%p", package);
+                delete package;
+                recvList->erase(recvList->begin());
+                LOG_INFO("HandlePackage");
             }
         }
     }
@@ -176,14 +212,21 @@ void CBaseServer::HandlePackage()
 
 int CBaseServer::FromRpcCall(CPackage *package)
 {
-    uint16_t cmd_id = package->GetCmd(); 
+    uint16_t cmd_id;
+    package->UnPackCmd(cmd_id); 
+    LOG_INFO("FromRpcCall cmd=%d", cmd_id);
+    
     switch(cmd_id) {
         case MSG_CMD_RPC:
-            m_Rpc->Dispatch(package);
+            LOG_INFO("msg cmd rpc");
+            //m_Rpc->Dispatch(package);
+            LOG_INFO("msg cmd rpc end");
             break;
         default:
             break;
     }
+    LOG_INFO("FromRpcCall end");
+    return 0;
 }
 
 }

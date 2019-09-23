@@ -3,7 +3,7 @@ CC=gcc
 CFLAGS=-W -g
 
 CXX=g++
-CXXFLAGS=-W -std=c++11 -g
+CXXFLAGS=-W -std=c++11 -g -fno-stack-protector
 PKG_FLAG=`pkg-config --libs --cflags glib-2.0`
 LINK=-Wl,-rpath,$(JEMALLOC_DIR)/lib
 
@@ -24,7 +24,6 @@ CXX_SRC_FILES:=$(foreach v, $(SRC_DIR), $(wildcard $(v)/*.cpp))
 
 C_OBJ_FILES:=$(subst .c,.o,$(C_SRC_FILES))
 CXX_OBJ_FILES:=$(subst .cpp,.o,$(CXX_SRC_FILES))
-
 
 LIBS=-L$(MSGPACK_DIR)/lib \
 	-L$(TINYXML_DIR)/lib

@@ -26,6 +26,8 @@ CBuffer::CBuffer(const char *buf, size_t len):
             throw std::bad_alloc();
         }
         std::memcpy(m_data, buf, len);
+    } else {
+        throw std::bad_alloc();
     }
 }
 
@@ -38,7 +40,9 @@ CBuffer::CBuffer(CBuffer& other) :
 
 CBuffer::~CBuffer()
 {
-    ::free(m_data);
+    if (m_data) {
+        ::free(m_data);
+    }
 }
 
 CBuffer& CBuffer::operator=(CBuffer& other)

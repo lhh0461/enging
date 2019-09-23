@@ -31,16 +31,12 @@ public:
 public:
     bool UnPackCmd(PKG_CMD_TYPE & cmd);
     bool UnPackString(std::string & val);
-    bool UnPackInt(int8_t & val);
-    bool UnPackInt(int16_t & val);
-    bool UnPackInt(int32_t & val);
-    bool UnPackInt(int64_t & val);
-    bool UnPackInt(uint8_t & val);
-    bool UnPackInt(uint16_t & val);
-    bool UnPackInt(uint32_t & val);
-    bool UnPackInt(uint64_t & val);
-    bool UnPackFloat(float & val);
-    bool UnPackFloat(double & val);
+    template <typename T>
+    bool UnPackInt(T & value);
+    template <typename T>
+    bool UnPackUInt(T & value);
+    template <typename T>
+    bool UnPackFloat(T & val);
     bool UnPackBool(bool & val);
     bool UnPackBytes(std::string & val);
 public:

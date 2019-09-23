@@ -1,4 +1,5 @@
 #include <string>
+#include <iostream>
 #include <msgpack.hpp>
 
 #include "Package.h"
@@ -13,6 +14,7 @@ CPackage::CPackage(size_t size):
     m_Buff(NULL), m_iUnpackOffset(0), m_iErrorCode(0)
 {
     m_Buff= new CBuffer(size);
+    m_Buff->SetDataSize(sizeof(PKG_HEADER_TYPE));
 }
 
 //for unpack
@@ -22,10 +24,16 @@ CPackage::CPackage(const char *buf, size_t size):
     m_Buff = new CBuffer(buf, size);
 }
 
+CPackage::~CPackage()
+{
+    if (m_Buff) {
+        delete m_Buff;
+    }
+}
+
 //-----------------unpack begin------------------
 #define UNPACK_OBJ(obj) \
     do { \
-        msgpack::object obj; \
         if (m_iErrorCode != 0) { \
             return false; \
         } \
@@ -51,7 +59,8 @@ CPackage::CPackage(const char *buf, size_t size):
 
 bool CPackage::UnPackCmd(PKG_CMD_TYPE & cmd)
 {
-    return UnPackInt(cmd);
+    LOG_ERROR("CPackage::UnpackCmd;");
+    return UnPackUInt(cmd);
 }
 
 bool CPackage::UnPackString(std::string & val)
@@ -69,7 +78,8 @@ bool CPackage::UnPackString(std::string & val)
     return true;
 }
 
-bool CPackage::UnPackInt(int64_t & value)
+template <typename T>
+bool CPackage::UnPackInt(T & value)
 {
     msgpack::object obj;
     UNPACK_OBJ(obj);
@@ -83,25 +93,12 @@ bool CPackage::UnPackInt(int64_t & value)
     return true;
 }
 
-bool CPackage::UnPackInt(int32_t & value)
-{
-    return UnPackInt(value);
-}
-
-bool CPackage::UnPackInt(int16_t & value)
-{
-    return UnPackInt(value);
-}
-
-bool CPackage::UnPackInt(int8_t & value)
-{
-    return UnPackInt(value);
-}
-
-bool CPackage::UnPackInt(uint64_t & value)
+template <typename T>
+bool CPackage::UnPackUInt(T & value)
 {
     msgpack::object obj;
     UNPACK_OBJ(obj);
+    std::cout << obj << "value" <<  std::endl;
     if (obj.type != msgpack::type::POSITIVE_INTEGER)
     {
         m_iErrorCode = 3;
@@ -112,22 +109,8 @@ bool CPackage::UnPackInt(uint64_t & value)
     return true;
 }
 
-bool CPackage::UnPackInt(uint32_t & value)
-{
-    return UnPackInt(value);
-}
-
-bool CPackage::UnPackInt(uint16_t & value)
-{
-    return UnPackInt(value);
-}
-
-bool CPackage::UnPackInt(uint8_t & value)
-{
-    return UnPackInt(value);
-}
-
-bool CPackage::UnPackFloat(double & val)
+template <typename T>
+bool CPackage::UnPackFloat(T & val)
 {
     msgpack::object obj;
     UNPACK_OBJ(obj);
@@ -139,11 +122,6 @@ bool CPackage::UnPackFloat(double & val)
     }
     val = obj.via.f64;
     return true;
-}
-
-bool CPackage::UnPackFloat(float & val)
-{
-    return UnPackFloat(val);
 }
 
 bool CPackage::UnPackBool(bool & val)
@@ -195,6 +173,62 @@ bool CPackage::PackString(const char * ptr, size_t len)
 }
 
 bool CPackage::PackString(const std::string & val)
+{
+    msgpack::packer<CBuffer> packer(m_Buff);
+    packer.pack(val);
+    *(PKG_HEADER_TYPE *)m_Buff->GetData() = m_Buff->GetDataSize();
+    return true;
+}
+
+bool CPackage::PackInt(uint8_t val)
+{
+    msgpack::packer<CBuffer> packer(m_Buff);
+    packer.pack(val);
+    *(PKG_HEADER_TYPE *)m_Buff->GetData() = m_Buff->GetDataSize();
+    return true;
+}
+
+bool CPackage::PackInt(uint16_t val)
+{
+    msgpack::packer<CBuffer> packer(m_Buff);
+    packer.pack(val);
+    *(PKG_HEADER_TYPE *)m_Buff->GetData() = m_Buff->GetDataSize();
+    return true;
+}
+
+bool CPackage::PackInt(uint32_t val)
+{
+    msgpack::packer<CBuffer> packer(m_Buff);
+    packer.pack(val);
+    *(PKG_HEADER_TYPE *)m_Buff->GetData() = m_Buff->GetDataSize();
+    return true;
+}
+
+bool CPackage::PackInt(uint64_t val)
+{
+    msgpack::packer<CBuffer> packer(m_Buff);
+    packer.pack(val);
+    *(PKG_HEADER_TYPE *)m_Buff->GetData() = m_Buff->GetDataSize();
+    return true;
+}
+
+bool CPackage::PackInt(int8_t val)
+{
+    msgpack::packer<CBuffer> packer(m_Buff);
+    packer.pack(val);
+    *(PKG_HEADER_TYPE *)m_Buff->GetData() = m_Buff->GetDataSize();
+    return true;
+}
+
+bool CPackage::PackInt(int16_t val)
+{
+    msgpack::packer<CBuffer> packer(m_Buff);
+    packer.pack(val);
+    *(PKG_HEADER_TYPE *)m_Buff->GetData() = m_Buff->GetDataSize();
+    return true;
+}
+
+bool CPackage::PackInt(int32_t val)
 {
     msgpack::packer<CBuffer> packer(m_Buff);
     packer.pack(val);
@@ -261,3 +295,4 @@ size_t CPackage::GetPkgDataLen()
 };
 
 }
+

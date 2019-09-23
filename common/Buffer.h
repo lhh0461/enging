@@ -24,6 +24,7 @@ public:
     char* GetData() { return m_data; }
     const char* GetData() const { return m_data; }
     size_t GetDataSize() const { return m_size; }
+    void SetDataSize(size_t size) { m_size = size; }
     size_t GetBufSize() const { return m_alloc; }
     void Reset() { m_size = 0; }
     void write(const char* buf, size_t len); //define for msgpack
