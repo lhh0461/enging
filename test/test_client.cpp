@@ -20,7 +20,7 @@ int test_pack()
 
     CPackage *unpack = new CPackage(package->GetPkgBuf() + sizeof(CPackage::PKG_HEADER_TYPE), package->GetPkgDataLen());
     int rpc;
-    package->UnPackInt<>(rpc);
+    package->UnPackInt(rpc);
     int arg;
     package->UnPackInt(arg);
     std::string cmd;
@@ -30,17 +30,18 @@ int test_pack()
 
 int test_cmd()
 {
-    //int fd = Connect("127.0.0.1", 8888, 0);
+    int fd = Connect("127.0.0.1", 8888, 0);
     CPackage *package = new CPackage();
     package->PackCmd((uint16_t)MSG_CMD_RPC);
-    uint64_t val = 1;
-    package->PackInt(val);
-    package->PackInt((uint8_t)val);
+    package->PackInt(1); //pid
+    package->PackInt(12); //pid
+    package->PackBool(true);
     package->PackString(std::string("hello"));
-    //int num = ::send(fd, package->GetPkgBuf(), package->GetPkgLen(), 0);
+    package->PackFloat(1.12345);
+    int num = ::send(fd, package->GetPkgBuf(), package->GetPkgLen(), 0);
 }
 
 int main()
 {
-    test_pack();
+    test_cmd();
 }

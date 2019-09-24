@@ -13,6 +13,7 @@
 #include "Rpc.h"
 #include "Package.h"
 #include "Script.h"
+#include "Log.h"
 
 using namespace std;
 using namespace tinyxml2;
@@ -271,6 +272,27 @@ int CRpc::Pack(RPC_PID pid, PyObject *obj, CPackage *package)
 
     return 0;
 }
+/*
+namespace type {
+    enum object_type {
+        NIL                 = MSGPACK_OBJECT_NIL,
+        BOOLEAN             = MSGPACK_OBJECT_BOOLEAN,
+        POSITIVE_INTEGER    = MSGPACK_OBJECT_POSITIVE_INTEGER,
+        NEGATIVE_INTEGER    = MSGPACK_OBJECT_NEGATIVE_INTEGER,
+        FLOAT32             = MSGPACK_OBJECT_FLOAT32,
+        FLOAT64             = MSGPACK_OBJECT_FLOAT64,
+        FLOAT               = MSGPACK_OBJECT_FLOAT,
+#if defined(MSGPACK_USE_LEGACY_NAME_AS_FLOAT)
+        DOUBLE              = MSGPACK_DEPRECATED("please use FLOAT64 instead") MSGPACK_OBJECT_DOUBLE, // obsolete
+#endif // MSGPACK_USE_LEGACY_NAME_AS_FLOAT
+        STR                 = MSGPACK_OBJECT_STR,
+        BIN                 = MSGPACK_OBJECT_BIN,
+        ARRAY               = MSGPACK_OBJECT_ARRAY,
+        MAP                 = MSGPACK_OBJECT_MAP,
+        EXT                 = MSGPACK_OBJECT_EXT
+    };
+}
+*/
 
 //return obj 正常
 //return null 异常
@@ -338,9 +360,10 @@ PyObject * CRpc::UnPack(RPC_PID pid, CPackage *package)
     const stRpcFunction *pFunction = GetFunctionById(pid);
     obj = PyTuple_New(pFunction->args.size());
     if (obj == NULL) {
-        fprintf(stderr, "Unpack. pid=%d\n", pid);
+        fprintf(stderr, "new unpack tuple fail. pid=%d\n", pid);
         return NULL;
     }
+    fprintf(stderr, "new unpack tuple size=%d. pid=%d\n",pFunction->args.size(), pid);
 
     int i = 0;
     for (auto iter : pFunction->args) {
@@ -358,7 +381,7 @@ int CRpc::Dispatch(CPackage *package)
     PyObject *obj;
 
     RPC_PID pid;
-    package->UnPackInt<unsigned short>(pid);
+    package->UnPackInt(pid);
     if (package->GetErrCode() > 0) {
         return -1;
     }

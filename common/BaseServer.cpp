@@ -123,7 +123,6 @@ void CBaseServer::HandleRecvMsg(int fd)
             LOG_ERROR("cant find fd conn stat");
             continue; 
         }
-        LOG_INFO("HandleRecvMsg fd=%d", fd);
         CConnState *conn = it->second;
         if (conn != NULL) {
             //剩余的的缓冲区
@@ -138,7 +137,6 @@ void CBaseServer::HandleRecvMsg(int fd)
                 if (errno == EAGAIN || errno == EWOULDBLOCK) {
                     continue;
                 }
-                cout << "errno=" << errno << ",errmsg="  << strerror(errno)  << endl;
                 break;
             }
             else if (num > 0) {
@@ -167,7 +165,6 @@ void CBaseServer::HandleRecvMsg(int fd)
 
                     std::list<CPackage *> *recvList = conn->GetRecvPackList(); 
                     recvList->push_back(package);
-                    cout << "push recv pack list" << endl;
 
                     iCurrentPos += packsize;
                 }
@@ -196,15 +193,11 @@ void CBaseServer::HandlePackage()
         CConnState *pConnState = it->second;
         if (pConnState) {
             std::list<CPackage *> *recvList = pConnState->GetRecvPackList(); 
-            LOG_INFO("size=%d", recvList->size());
             while (!recvList->empty()) {
                 CPackage *package = recvList->front();
-                LOG_INFO("FromRpcCall1111 end, package=%p", package);
+                recvList->pop_front();
                 this->FromRpcCall(package);
-                LOG_INFO("FromRpcCall1111 end22, package=%p", package);
                 delete package;
-                recvList->erase(recvList->begin());
-                LOG_INFO("HandlePackage");
             }
         }
     }
@@ -214,13 +207,10 @@ int CBaseServer::FromRpcCall(CPackage *package)
 {
     uint16_t cmd_id;
     package->UnPackCmd(cmd_id); 
-    LOG_INFO("FromRpcCall cmd=%d", cmd_id);
     
     switch(cmd_id) {
         case MSG_CMD_RPC:
-            LOG_INFO("msg cmd rpc");
-            //m_Rpc->Dispatch(package);
-            LOG_INFO("msg cmd rpc end");
+            m_Rpc->Dispatch(package);
             break;
         default:
             break;

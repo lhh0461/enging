@@ -2,6 +2,11 @@
 #define __PACKAGE__
 
 #include <string>
+#include <iostream>
+#include <msgpack.hpp>
+
+#include "Buffer.h"
+#include "Log.h"
 
 /* 
  * |数据包格式|
@@ -31,12 +36,16 @@ public:
 public:
     bool UnPackCmd(PKG_CMD_TYPE & cmd);
     bool UnPackString(std::string & val);
-    template <typename T>
-    bool UnPackInt(T & value);
-    template <typename T>
-    bool UnPackUInt(T & value);
-    template <typename T>
-    bool UnPackFloat(T & val);
+    bool UnPackInt(int8_t & value);
+    bool UnPackInt(int16_t & value);
+    bool UnPackInt(int32_t & value);
+    bool UnPackInt(int64_t & value);
+    bool UnPackInt(uint8_t & value);
+    bool UnPackInt(uint16_t & value);
+    bool UnPackInt(uint32_t & value);
+    bool UnPackInt(uint64_t & value);
+    bool UnPackFloat(float & val);
+    bool UnPackFloat(double & val);
     bool UnPackBool(bool & val);
     bool UnPackBytes(std::string & val);
 public:

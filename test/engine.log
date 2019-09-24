@@ -1,0 +1,2 @@
+[2019-09-24 23:33:08] [../common/Package.cpp:102] [error] CPackage::UnpackInt;desc=unpack is not int;type=2
+[2019-09-24 23:33:08] [../common/Package.cpp:186] [error] CPackage::UnpackString;desc=unpack is not string;type=2

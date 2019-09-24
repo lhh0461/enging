@@ -32,6 +32,7 @@ CPackage::~CPackage()
 }
 
 //-----------------unpack begin------------------
+
 #define UNPACK_OBJ(obj) \
     do { \
         if (m_iErrorCode != 0) { \
@@ -59,8 +60,119 @@ CPackage::~CPackage()
 
 bool CPackage::UnPackCmd(PKG_CMD_TYPE & cmd)
 {
-    LOG_ERROR("CPackage::UnpackCmd;");
-    return UnPackUInt(cmd);
+    return UnPackInt(cmd);
+}
+
+bool CPackage::UnPackInt(int8_t & value)
+{
+    msgpack::object obj;
+    UNPACK_OBJ(obj);
+    if (obj.type != msgpack::type::NEGATIVE_INTEGER)
+    {
+        m_iErrorCode = 3;
+        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
+        return false;
+    }
+    value = obj.via.i64;
+    return true;
+}
+
+bool CPackage::UnPackInt(int16_t & value)
+{
+    msgpack::object obj;
+    UNPACK_OBJ(obj);
+    if (obj.type != msgpack::type::NEGATIVE_INTEGER)
+    {
+        m_iErrorCode = 3;
+        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
+        return false;
+    }
+    value = obj.via.i64;
+    return true;
+}
+
+bool CPackage::UnPackInt(int32_t & value)
+{
+    msgpack::object obj;
+    UNPACK_OBJ(obj);
+    if (obj.type != msgpack::type::NEGATIVE_INTEGER)
+    {
+        m_iErrorCode = 3;
+        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
+        return false;
+    }
+    value = obj.via.i64;
+    return true;
+}
+
+bool CPackage::UnPackInt(int64_t & value)
+{
+    msgpack::object obj;
+    UNPACK_OBJ(obj);
+    if (obj.type != msgpack::type::NEGATIVE_INTEGER)
+    {
+        m_iErrorCode = 3;
+        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
+        return false;
+    }
+    value = obj.via.i64;
+    return true;
+}
+
+bool CPackage::UnPackInt(uint8_t & value)
+{
+    msgpack::object obj;
+    UNPACK_OBJ(obj);
+    if (obj.type != msgpack::type::POSITIVE_INTEGER)
+    {
+        m_iErrorCode = 3;
+        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
+        return false;
+    }
+    value = obj.via.u64;
+    return true;
+}
+
+bool CPackage::UnPackInt(uint16_t & value)
+{
+    msgpack::object obj;
+    UNPACK_OBJ(obj);
+    if (obj.type != msgpack::type::POSITIVE_INTEGER)
+    {
+        m_iErrorCode = 3;
+        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
+        return false;
+    }
+    value = obj.via.u64;
+    return true;
+}
+
+bool CPackage::UnPackInt(uint32_t & value)
+{
+    msgpack::object obj;
+    UNPACK_OBJ(obj);
+    if (obj.type != msgpack::type::POSITIVE_INTEGER)
+    {
+        m_iErrorCode = 3;
+        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
+        return false;
+    }
+    value = obj.via.u64;
+    return true;
+}
+
+bool CPackage::UnPackInt(uint64_t & value)
+{
+    msgpack::object obj;
+    UNPACK_OBJ(obj);
+    if (obj.type != msgpack::type::POSITIVE_INTEGER)
+    {
+        m_iErrorCode = 3;
+        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
+        return false;
+    }
+    value = obj.via.u64;
+    return true;
 }
 
 bool CPackage::UnPackString(std::string & val)
@@ -78,39 +190,21 @@ bool CPackage::UnPackString(std::string & val)
     return true;
 }
 
-template <typename T>
-bool CPackage::UnPackInt(T & value)
+bool CPackage::UnPackBool(bool & val)
 {
     msgpack::object obj;
     UNPACK_OBJ(obj);
-    if (obj.type != msgpack::type::NEGATIVE_INTEGER)
+    if (msgpack::type::BOOLEAN != obj.type)
     {
         m_iErrorCode = 3;
-        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
+        LOG_ERROR("CPackage::UnpackBool;desc=unpack is not boolean;type=%d", obj.type);
         return false;
     }
-    value = obj.via.i64;
+    val = obj.via.boolean;
     return true;
 }
 
-template <typename T>
-bool CPackage::UnPackUInt(T & value)
-{
-    msgpack::object obj;
-    UNPACK_OBJ(obj);
-    std::cout << obj << "value" <<  std::endl;
-    if (obj.type != msgpack::type::POSITIVE_INTEGER)
-    {
-        m_iErrorCode = 3;
-        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
-        return false;
-    }
-    value = obj.via.u64;
-    return true;
-}
-
-template <typename T>
-bool CPackage::UnPackFloat(T & val)
+bool CPackage::UnPackFloat(float & val)
 {
     msgpack::object obj;
     UNPACK_OBJ(obj);
@@ -124,17 +218,17 @@ bool CPackage::UnPackFloat(T & val)
     return true;
 }
 
-bool CPackage::UnPackBool(bool & val)
+bool CPackage::UnPackFloat(double & val)
 {
     msgpack::object obj;
     UNPACK_OBJ(obj);
-    if (msgpack::type::BOOLEAN != obj.type)
+    if (msgpack::type::FLOAT64 != obj.type)
     {
         m_iErrorCode = 3;
-        LOG_ERROR("CPackage::UnpackBool;desc=unpack is not boolean;type=%d", obj.type);
+        LOG_ERROR("CPackage::UnpackFloat;desc=unpack is not float;type=%d", obj.type);
         return false;
     }
-    val = obj.via.boolean;
+    val = obj.via.f64;
     return true;
 }
 
