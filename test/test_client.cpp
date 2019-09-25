@@ -34,7 +34,7 @@ int test_cmd()
     CPackage *package = new CPackage();
     package->PackCmd((uint16_t)MSG_CMD_RPC);
     package->PackInt(1); //pid
-    package->PackInt(12); //pid
+    package->PackInt(12); //parm
     package->PackBool(true);
     package->PackString(std::string("hello"));
     package->PackFloat(1.12345);

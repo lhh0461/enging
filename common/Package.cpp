@@ -56,6 +56,7 @@ CPackage::~CPackage()
             return false; \
         } \
         obj = result.get(); \
+        std::cout << obj << std::endl; \
     } while(0);
 
 bool CPackage::UnPackCmd(PKG_CMD_TYPE & cmd)
@@ -109,12 +110,13 @@ bool CPackage::UnPackInt(int64_t & value)
 {
     msgpack::object obj;
     UNPACK_OBJ(obj);
-    if (obj.type != msgpack::type::NEGATIVE_INTEGER)
-    {
-        m_iErrorCode = 3;
-        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
-        return false;
-    }
+//    if (obj.type != msgpack::type::NEGATIVE_INTEGER)
+//    {
+//        m_iErrorCode = 3;
+//        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", obj.type);
+//        LOG_ERROR("CPackage::UnpackInt;desc=unpack is not int;type=%d", msgpack::type::POSITIVE_INTEGER);
+//        return false;
+//    }
     value = obj.via.i64;
     return true;
 }

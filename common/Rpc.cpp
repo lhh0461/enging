@@ -45,6 +45,8 @@ eRpcFieldType CRpc::GetArgTypeByName(const string & name)
 {
     if (name == "RPC_INT") {
         return RPC_INT;
+    } else if (name == "RPC_UINT") {
+        return RPC_UINT;
     } else if (name == "RPC_STRING") {
         return RPC_STRING;
     } else if (name == "RPC_PB") {
@@ -302,6 +304,15 @@ PyObject *CRpc::UnPackField(eRpcFieldType field, CPackage *package)
         case RPC_INT:
             {
                 int64_t val;
+                package->UnPackInt(val);
+                if (package->GetErrCode() > 0) {
+                    return NULL;
+                }
+                return PyLong_FromLong(val);
+            }
+        case RPC_UINT:
+            {
+                uint64_t val;
                 package->UnPackInt(val);
                 if (package->GetErrCode() > 0) {
                     return NULL;

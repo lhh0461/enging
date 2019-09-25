@@ -59,6 +59,7 @@ void CBaseServer::Init()
     AddFdToEpoll(fd);
 
     Py_Initialize();
+    PyRun_SimpleString("import sys\nsys.path.append(\"./scripts\")");
 }
 
 void CBaseServer::Run()
