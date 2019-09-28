@@ -1,5 +1,5 @@
-#ifndef __BUFFER__
-#define __BUFFER__
+#ifndef __SERVICE__
+#define __SERVICE__
 
 namespace XEngine
 {
@@ -15,10 +15,11 @@ public:
     CService & operator=(CService& other);
 public:
 private:
+    int mServiceId;
     CSaveData *m_save_data;
 };
 
 }
 
-#endif //__BUFFER__
+#endif //__SERVICE__
 

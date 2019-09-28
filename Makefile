@@ -40,9 +40,11 @@ $(SRC_DIR)/%.o:$(SRC_DIR)/%.c
 $(SRC_DIR)/%.o:$(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@ $(INC_FILES)
 
-.PHONY:clean rpc
+.PHONY:clean rpc stop
 clean:
 	-rm $(PROJECT)
 	-rm -rf $(SRC_DIR)/*.o
 rpc:
 	cd proto/def && protoc --proto_path=./ * --python_out=../output
+stop:
+	pkill engine

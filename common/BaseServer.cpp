@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 
 #include "BaseServer.h"
+#include "EgnFunc.h"
 #include "Log.h"
 #include "NetTool.h"
 #include "Cmd.h"
@@ -58,8 +59,11 @@ void CBaseServer::Init()
     m_listen_fd = fd;
     AddFdToEpoll(fd);
 
+    PyImport_AppendInittab("efun", PyInit_efunc);
+
     Py_Initialize();
     PyRun_SimpleString("import sys\nsys.path.append(\"./scripts\")");
+    PyImport_ImportModule("efun");
 }
 
 void CBaseServer::Run()
@@ -183,7 +187,6 @@ void CBaseServer::HandleRecvMsg(int fd)
                 //对端已经关闭连接
             }
         }
-        break;
     }
 }
 
