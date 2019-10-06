@@ -373,6 +373,14 @@ bool CPackage::PackBytes(const std::string & val)
     return true;
 }
 
+bool CPackage::PackEntity(const std::string & val)
+{
+    msgpack::packer<CBuffer> packer(m_Buff);
+    packer.pack(val);
+    *(PKG_HEADER_TYPE *)m_Buff->GetData() = m_Buff->GetDataSize();
+    return true;
+}
+
 //-----------------pack end----------------------
 
 const char * CPackage::GetPkgBuf()

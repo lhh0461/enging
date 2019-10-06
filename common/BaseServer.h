@@ -1,15 +1,16 @@
 #ifndef __BASE_SERVER__
 #define __BASE_SERVER__
 
+#include <list>
 #include <unordered_map>
-
-#include "Package.h"
-#include "Rpc.h"
-#include "ConfigParser.h"
-#include "ConnState.h"
 
 namespace XEngine
 {
+
+class CRpc;
+class CPackage;
+class CConnState;
+class CConfigParser;
 
 class CBaseServer
 {
@@ -38,6 +39,7 @@ private:
     CRpc *m_Rpc;
     CConfigParser *m_Config;
     std::unordered_map<int, CConnState *> m_ConnStat;
+    std::unordered_map<SERVER_TYPE, std::list<int>> m_ServerType2Fd;
 };
 
 }

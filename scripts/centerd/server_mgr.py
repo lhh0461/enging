@@ -1,7 +1,13 @@
-#当entity创建
-def __ctor__(entity):
+import XEngine
+
+#当entity创建时调用
+def __on_create__(entity):
     #start timer
-    add_timer(entity, "timer_cb", 10)
+    XEngine.add_timer(entity, "timer_cb", 10)
+
+#当entity注册成功后调用
+def __on_registered__(entity, result):
+    pass
 
 def rpc_host_alliance_req(entity, alliance_id, mailbox):
     temp = entity["temp_data"]

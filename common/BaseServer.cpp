@@ -10,12 +10,15 @@
 #include <arpa/inet.h>
 
 #include "BaseServer.h"
-#include "EgnFunc.h"
 #include "Log.h"
 #include "NetTool.h"
 #include "Cmd.h"
-#include "ConfigParser.h"
 #include "Package.h"
+#include "Rpc.h"
+#include "Common.h"
+#include "ConfigParser.h"
+#include "ConnState.h"
+
 
 using namespace std;
 
@@ -59,11 +62,12 @@ void CBaseServer::Init()
     m_listen_fd = fd;
     AddFdToEpoll(fd);
 
-    PyImport_AppendInittab("efun", PyInit_efunc);
+    PyImport_AppendInittab("XEngine", PyInit_efunc);
 
     Py_Initialize();
     PyRun_SimpleString("import sys\nsys.path.append(\"./scripts\")");
-    PyImport_ImportModule("efun");
+    PyImport_ImportModule("XEngine");
+
 }
 
 void CBaseServer::Run()

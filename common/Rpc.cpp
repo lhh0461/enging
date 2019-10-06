@@ -422,7 +422,7 @@ int CRpc::Dispatch(CPackage *package)
 
 int CRpc::RpcCall(const CPackage *package)
 {
-
+    
 }
 
 }
