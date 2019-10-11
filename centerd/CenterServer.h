@@ -15,11 +15,16 @@ class CCenterServer : public CBaseServer
 {
 public:
     CCenterServer();
-    virtual ~CCenterServer();
+    ~CCenterServer();
     void Init();
     void Run();
 protected:
     int FromRpcCall(CPackage *package);
+private:
+    int OnServerRegister(CPackage *package);
+private:
+     CLoadBalance *m_LoadBalance;
+     CLoadBalance *m_LoadBalance;
 };
 
 }

@@ -1,13 +1,4 @@
 #include <sys/epoll.h>
-//#include <string>
-#include <iostream>
-//#include <sys/types.h>
-#include <sys/socket.h>
-//#include <errno.h>
-//#include <unistd.h>
-//#include <fcntl.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 #include "BaseServer.h"
 #include "Log.h"
@@ -25,8 +16,8 @@ using namespace std;
 namespace XEngine
 {
 
-CBaseServer::CBaseServer():
-    m_epoll_fd(0), m_listen_fd(0)
+CBaseServer::CBaseServer(SERVER_TYPE server_type)
+    :m_epoll_fd(0), m_listen_fd(0), m_server_type(server_type)
 {
     m_Config = new CConfigParser();
     m_Rpc = new CRpc();
@@ -58,16 +49,23 @@ void CBaseServer::Init()
     }
 
     LOG_INFO("server init success");
+    std::string ip = m_Config->GetConfig("global", "IP");
 
     m_listen_fd = fd;
     AddFdToEpoll(fd);
-
-    PyImport_AppendInittab("XEngine", PyInit_efunc);
+    PyImport_AppendInittab("XEngine", PyInit_XEngine);
 
     Py_Initialize();
     PyRun_SimpleString("import sys\nsys.path.append(\"./scripts\")");
     PyImport_ImportModule("XEngine");
 
+    //都主动去连CENTERD
+    if (m_ServerType != SERVER_TYPE_CENTERD) {
+        if (ConnectToServer(CENTERD_ID, m_Config->GetConfig("centerd", "IP").c_str(), m_Config->GetConfig("centerd", "PORT"))) {
+            LOG_ERROR("connect to centerd fail");
+            exit(1);
+        }
+    }
 }
 
 void CBaseServer::Run()
@@ -82,23 +80,28 @@ void CBaseServer::Run()
                 HandleNewConnection();
             }
             else { 
-                if (events[i].events & EPOLLIN) {
-                    HandleRecvMsg(events[i].data.fd);
+                auto it = m_ConnStat.find(events[i].data.fd);
+                if (it == m_ConnStat.end()) {
+                    continue; 
                 }
-                //else if (events[i].events & EPOLLOUT) {
-                //    HandleWriteMsg(events[i].data.fd);
-                //}
+                CConnState *conn = it->second;
+                if (events[i].events & EPOLLIN) {
+                    HandleRecvMsg(conn);
+                }
+                else if (events[i].events & EPOLLOUT) {
+                    HandleWriteMsg(conn);
+                }
             }
         }
-        this->HandlePackage();
+        HandlePackage();
     }
 }
 
 void CBaseServer::HandleNewConnection()
 {
-    struct sockaddr_in addr;
-    socklen_t addrlen;
-    int conn_fd = accept(m_listen_fd, (struct sockaddr *) &addr, &addrlen);
+    std::string ip;
+    int port;
+    int conn_fd = Accept(m_listen_fd, ip, port);
     if (conn_fd < 0) {
         LOG_ERROR("accept new fd fail");
         return;
@@ -108,11 +111,11 @@ void CBaseServer::HandleNewConnection()
 
     AddFdToEpoll(conn_fd);
 
-    const char *ip = inet_ntoa(addr.sin_addr);
-    int port = addr.sin_port;
+    CConnState *conn = new CConnState(conn_fd, ip, port, CONN_ACCEPTED_FLAG|CONN_CLIENT_FLAG);
+    conn->SetConnected();
+    m_ConnStat.insert(std::make_pair(conn_fd, conn));
 
-    CConnState *client = new CConnState(ip, port, CConnState::CONN_CLIENT_FLAG);
-    m_ConnStat.insert(std::make_pair(conn_fd, client));
+    OnAccecptFdCallBack();
 }
 
 void CBaseServer::AddFdToEpoll(int fd)
@@ -123,17 +126,12 @@ void CBaseServer::AddFdToEpoll(int fd)
     epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, fd, &ev);
 }
 
-void CBaseServer::HandleRecvMsg(int fd)
+void CBaseServer::HandleRecvMsg(CConnState *conn)
 {
     for (;;)
     {
-        auto it = m_ConnStat.find(fd);
-        if (it == m_ConnStat.end()) {
-            LOG_ERROR("cant find fd conn stat");
-            continue; 
-        }
-        CConnState *conn = it->second;
-        if (conn != NULL) {
+        if (conn != NULL)
+        {
             //剩余的的缓冲区
             char *pRecvCurBuf = conn->GetRecvCurBuf();
             int iRecvBufLeftSize = conn->GetRecvBufLeftSize();
@@ -189,8 +187,28 @@ void CBaseServer::HandleRecvMsg(int fd)
             }
             else {
                 //对端已经关闭连接
+                OnCloseFdCallBack();    
             }
         }
+    }
+}
+
+void CBaseServer::HandleWriteMsg(CConnState *conn)
+{
+    if (!conn->IsConnected()) {
+        int optval;
+        socklen_t optlen = sizeof(optval);
+        int res = getsockopt(fd, SOL_SOCKET, SO_ERROR, &optval, optlen);
+        if (res < 0 || optval) {
+            LOG_ERROR("connect to server fail");
+            delete conn;
+            m_ConnStat.erase(it);
+            return;
+        }
+        conn->SetConnected();
+        OnConnectFdCallBack(conn);    
+    } else {
+        //TODO
     }
 }
 
@@ -225,6 +243,43 @@ int CBaseServer::FromRpcCall(CPackage *package)
     }
     LOG_INFO("FromRpcCall end");
     return 0;
+}
+
+int CBaseServer::ConnectToServer(SERVER_TYPE server_type, SERVER_ID server_id, const char *ip, int port)
+{
+    int conn_fd = Connect(ip, port, 0);
+    if (conn_fd < 0) {
+        LOG_ERROR("accept new fd fail");
+        return -1;
+    }
+
+    SetBlock(conn_fd, 0, NULL);
+
+    AddFdToEpoll(conn_fd);
+
+    //创建连接状态
+    CConnState *conn = new CConnState(server_type, server_id, ip, port, CONN_MAILBOX_FLAG|CONN_HARBOR_FLAG);
+    m_ConnStat.insert(std::make_pair(conn_fd, conn));
+
+    return 0;
+}
+
+int OnConnectFdCallBack(CConnState *conn)
+{
+    //如果是CENTERD，则发送注册信息
+    if (conn->GetServerType() == SERVER_TYPE_CENTERD) {
+        m_Rpc->RpcCall(conn, );
+    }
+}
+
+int OnAccecptFdCallBack(CConnState *conn)
+{
+    
+}
+
+int OnCloseFdCallBack(CPackage *package)
+{
+    
 }
 
 }

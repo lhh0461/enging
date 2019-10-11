@@ -21,8 +21,8 @@ using namespace std;
 namespace XEngine
 {
 
-CCenterServer::CCenterServer():
-    m_epoll_fd(0), m_listen_fd(0)
+CCenterServer::CCenterServer()
+    :m_epoll_fd(0), m_listen_fd(0)
 {
     m_Config = new CConfigParser();
     m_Rpc = new CRpc();
@@ -33,6 +33,10 @@ CCenterServer::~CCenterServer()
 
 }
 
+int CCenterServer::OnServerRegister(CPackage *package)
+{
+    
+}
 
 int CCenterServer::FromRpcCall(CPackage *package)
 {
@@ -40,6 +44,8 @@ int CCenterServer::FromRpcCall(CPackage *package)
     package->UnPackCmd(cmd_id); 
     
     switch(cmd_id) {
+        case MSG_CMD_SERVER_REGISTER:
+            OnServerRegister(package);
         case MSG_CMD_RPC:
             m_Rpc->Dispatch(package);
             break;

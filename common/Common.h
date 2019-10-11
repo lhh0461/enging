@@ -19,6 +19,8 @@ enum {
     SERVER_TYPE_HTTPD = 6,
 };
 
+#define CENTERD_ID (1)
+
 }
 
 #endif //__COMMON__

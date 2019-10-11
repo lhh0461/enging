@@ -92,6 +92,17 @@ static PyObject *IRpcCall(PyObject *self, PyObject *args)
     */
 }
 
+static PyObject *IConnectToServer(PyObject *self, PyObject *args)
+{
+    int server_type;
+    const char *ip;
+    int port;
+    if (!PyArg_ParseTuple(args, "isi", &server_type, &ip, &port))
+        return NULL;
+
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef PyXEngineMethods[] = {
     {"add_timer", (PyCFunction)IAddTimer, METH_VARARGS, "pack from python obj to bytes" },
     {"del_timer", (PyCFunction)IDelTimer, METH_VARARGS, "pack from python obj to bytes" },
@@ -100,6 +111,7 @@ static PyMethodDef PyXEngineMethods[] = {
     {"create_entity_remote", (PyCFunction)ICreateEntityRemote, METH_VARARGS, "pack from python obj to bytes" },
     {"register_global_service", (PyCFunction)IRegisterGlobalService, METH_VARARGS, "pack from python obj to bytes" },
     {"destroy_entity", (PyCFunction)IDestroyEntity, METH_VARARGS, "pack from python obj to bytes" },
+    {"connect_to_server", (PyCFunction)IConnectToServer, METH_VARARGS, "pack from python obj to bytes" },
     {"rpc_call", (PyCFunction)IDestroyEntity, METH_VARARGS, "pack from python obj to bytes" },
     {NULL}  /* Sentinel */
 };

@@ -3,8 +3,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include <errno.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include "NetTool.h"
@@ -52,6 +53,23 @@ int Connect(const char *ip, int port, int block)
         close(fd);
         return -1; 
     }   
+
+    return fd;
+}
+
+int Accept(int listen_fd, std::string &ip, int &port)
+{
+    struct sockaddr_in addr;
+    socklen_t addrlen;
+
+    int conn_fd = accept(m_listen_fd, (struct sockaddr *) &addr, &addrlen);
+    if (conn_fd < 0) {
+        LOG_ERROR("accept new fd fail");
+        return -1;
+    }
+
+    ip = inet_ntoa(addr.sin_addr);
+    port = addr.sin_port;
 
     return fd;
 }

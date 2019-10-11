@@ -3,8 +3,9 @@
 namespace XEngine
 {
 
-CConnState::CConnState(const char *ip, int port, int flag):
-   m_Ip(ip), m_Port(port), m_ConnFlag(flag)
+CConnState::CConnState(SERVER_TYPE server_type, SERVER_ID server_id, const char *ip, int port, int flag)
+   :m_Ip(ip), m_Port(port), m_ConnFlag(flag), m_IsConnected(0), m_Fd(0),
+    m_ServerId(0), m_ServerType(0), m_ConnFlag(flag)
 {
 
     m_RecvPackList = new std::list<CPackage *>();

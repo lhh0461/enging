@@ -1,0 +1,21 @@
+<root>
+    <rpc>
+        <function>rpc_server_equip_req</function>
+        <path>module.equip</path>
+        <args>
+            <!-- 操作ID -->
+            <arg>RPC_INT</arg>
+            <arg>RPC_BOOL</arg>
+            <arg>RPC_STRING</arg>
+            <arg>RPC_FLOAT</arg>
+        </args>
+        <rpc_deamon>GAMED</rpc_deamon>
+    </rpc>
+    <rpc>
+        <function>rpc_client_alliance_info</function>
+        <args>
+            <arg>RPC_STRING</arg>
+        </args>
+        <rpc_deamon>CLIENT</rpc_deamon>
+    </rpc>
+</root>
