@@ -3,6 +3,9 @@
 #include "Entity.h"
 #include "EntityMgr.h"
 
+namespace XEngine
+{
+
 CEntityMgr::CEntityMgr(ENTITY_ID init_id)
     :m_InitEntityId(init_id) ,m_NextEntityId(init_id)
 {
@@ -11,8 +14,8 @@ CEntityMgr::CEntityMgr(ENTITY_ID init_id)
 
 CEntityMgr::~CEntityMgr()
 {
-    unordered_map<ENTITY_ID, CEntity *>::iterator it;
-    for (it = m_AllEntitys.begin(); it != m_AllEntitys.end(); ++it)
+    std::unordered_map<ENTITY_ID, CEntity *>::iterator it;
+    for (it = m_AllEntitys.begin(); it != m_AllEntitys.end(); ++it) {
         delete it->second;
     }
     m_AllEntitys.clear();
@@ -30,13 +33,13 @@ ENTITY_ID CEntityMgr::GenEntityId()
 ENTITY_ID CEntityMgr::AddEntity(CEntity *entity)
 {
     ENTITY_ID id = this->GenEntityId();
-    m_AllEntitys.insert(pair<ENTITY_ID, CEntity*>(id, entity));
+    m_AllEntitys.insert(std::pair<ENTITY_ID, CEntity*>(id, entity));
     return id;
 }
 
 int CEntityMgr::DelEntity(ENTITY_ID id)
 {
-    unordered_map<ENTITY_ID, CEntity *>::iterator it;
+    std::unordered_map<ENTITY_ID, CEntity *>::iterator it;
     it = m_AllEntitys.find(id);
     if (it != m_AllEntitys.end()) {
         delete it->second;
@@ -45,9 +48,9 @@ int CEntityMgr::DelEntity(ENTITY_ID id)
     return 0;
 }
 
-CEntity *CEntityMgr::GetEntity(ENTITY_ID entity_id)
+CEntity *CEntityMgr::GetEntity(ENTITY_ID id)
 {
-    unordered_map<ENTITY_ID, CEntity *>::iterator it;
+    std::unordered_map<ENTITY_ID, CEntity *>::iterator it;
     it = m_AllEntitys.find(id);
     if (it != m_AllEntitys.end()) {
         return it->second;
@@ -55,11 +58,11 @@ CEntity *CEntityMgr::GetEntity(ENTITY_ID entity_id)
     return NULL;
 }
 
-int AddMailBox(ENTITY_TYPE etype, CMailBox *mailbox)
+int CEntityMgr::AddGlobalEntity(ENTITY_TYPE etype, CMailBox *mailbox)
 {
-    unordered_map<etype, CMailBox *>::iterator it;
+    std::unordered_map<ENTITY_TYPE, CMailBox *>::iterator it;
     it = m_GlobalEntitys.find(etype);
-    if (it != m_AllEntitys.end()) {
+    if (it != m_GlobalEntitys.end()) {
         delete it->second;
         it->second = mailbox;
         return 0;
@@ -67,14 +70,16 @@ int AddMailBox(ENTITY_TYPE etype, CMailBox *mailbox)
     return 1;
 }
 
-CMailBox *GetMailBox(ENTITY_TYPE etype)
+CMailBox *CEntityMgr::GetGlobalEntity(ENTITY_TYPE etype)
 {
     //TODO goto redis
-    unordered_map<etype, CMailBox *>::iterator it;
+    std::unordered_map<ENTITY_TYPE, CMailBox *>::iterator it;
     it = m_GlobalEntitys.find(etype);
-    if (it != m_AllEntitys.end()) {
+    if (it != m_GlobalEntitys.end()) {
         return it->second;
     }
     return NULL;
+}
+
 }
 

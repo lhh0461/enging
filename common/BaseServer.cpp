@@ -7,6 +7,7 @@
 #include "Package.h"
 #include "Rpc.h"
 #include "Common.h"
+#include "XEngine.h"
 #include "ConfigParser.h"
 #include "ConnState.h"
 
@@ -17,7 +18,7 @@ namespace XEngine
 {
 
 CBaseServer::CBaseServer(SERVER_TYPE server_type)
-    :m_epoll_fd(0), m_listen_fd(0), m_server_type(server_type)
+    :m_EpollFd(0), m_ListenFd(0), m_ServerType(server_type)
 {
     m_Config = new CConfigParser();
     m_Rpc = new CRpc();
@@ -40,7 +41,7 @@ void CBaseServer::Init()
     std::string ip = m_Config->GetConfig("global", "IP");
     int port = atoi(m_Config->GetConfig("global", "PORT").c_str());
 
-    m_epoll_fd = epoll_create(MAX_EVENT); 
+    m_EpollFd = epoll_create(MAX_EVENT); 
     
     int fd = Listen(ip.c_str(), port, 1024);
     if (fd < 0) {
@@ -49,9 +50,8 @@ void CBaseServer::Init()
     }
 
     LOG_INFO("server init success");
-    std::string ip = m_Config->GetConfig("global", "IP");
 
-    m_listen_fd = fd;
+    m_ListenFd = fd;
     AddFdToEpoll(fd);
     PyImport_AppendInittab("XEngine", PyInit_XEngine);
 
@@ -61,7 +61,7 @@ void CBaseServer::Init()
 
     //都主动去连CENTERD
     if (m_ServerType != SERVER_TYPE_CENTERD) {
-        if (ConnectToServer(CENTERD_ID, m_Config->GetConfig("centerd", "IP").c_str(), m_Config->GetConfig("centerd", "PORT"))) {
+        if (ConnectToServer(SERVER_TYPE_CENTERD, CENTERD_ID, m_Config->GetConfig("centerd", "IP").c_str(), atoi(m_Config->GetConfig("centerd", "PORT").c_str()))) {
             LOG_ERROR("connect to centerd fail");
             exit(1);
         }
@@ -73,10 +73,10 @@ void CBaseServer::Run()
     struct epoll_event events[MAX_EVENT];
     for (;;)
     {
-        int nfds = epoll_wait(m_epoll_fd, events, MAX_EVENT, 500);
+        int nfds = epoll_wait(m_EpollFd, events, MAX_EVENT, 500);
         for(int i = 0; i < nfds; i++)
         {
-            if (events[i].data.fd == m_listen_fd) {
+            if (events[i].data.fd == m_ListenFd) {
                 HandleNewConnection();
             }
             else { 
@@ -101,7 +101,7 @@ void CBaseServer::HandleNewConnection()
 {
     std::string ip;
     int port;
-    int conn_fd = Accept(m_listen_fd, ip, port);
+    int conn_fd = Accept(m_ListenFd, ip, port);
     if (conn_fd < 0) {
         LOG_ERROR("accept new fd fail");
         return;
@@ -111,11 +111,11 @@ void CBaseServer::HandleNewConnection()
 
     AddFdToEpoll(conn_fd);
 
-    CConnState *conn = new CConnState(conn_fd, ip, port, CONN_ACCEPTED_FLAG|CONN_CLIENT_FLAG);
-    conn->SetConnected();
+    CConnState *conn = new CConnState(0, 0, ip.c_str(),port, CONN_ACCEPTED_FLAG|CONN_CLIENT_FLAG);
+    conn->SetConnected(1);
     m_ConnStat.insert(std::make_pair(conn_fd, conn));
 
-    OnAccecptFdCallBack();
+    OnAcceptFdCallBack(conn);
 }
 
 void CBaseServer::AddFdToEpoll(int fd)
@@ -123,7 +123,7 @@ void CBaseServer::AddFdToEpoll(int fd)
     struct epoll_event ev;
     ev.data.fd = fd;
     ev.events = EPOLLIN|EPOLLET;
-    epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, fd, &ev);
+    epoll_ctl(m_EpollFd, EPOLL_CTL_ADD, fd, &ev);
 }
 
 void CBaseServer::HandleRecvMsg(CConnState *conn)
@@ -136,7 +136,7 @@ void CBaseServer::HandleRecvMsg(CConnState *conn)
             char *pRecvCurBuf = conn->GetRecvCurBuf();
             int iRecvBufLeftSize = conn->GetRecvBufLeftSize();
             //读取数据到缓冲区
-            size_t num = ::recv(fd, pRecvCurBuf, iRecvBufLeftSize, 0);
+            size_t num = ::recv(conn->GetFd(), pRecvCurBuf, iRecvBufLeftSize, 0);
             if (num == (size_t)-1) {
                 if (errno == EINTR) {
                     continue;
@@ -187,7 +187,7 @@ void CBaseServer::HandleRecvMsg(CConnState *conn)
             }
             else {
                 //对端已经关闭连接
-                OnCloseFdCallBack();    
+                OnCloseFdCallBack(conn);
             }
         }
     }
@@ -198,14 +198,14 @@ void CBaseServer::HandleWriteMsg(CConnState *conn)
     if (!conn->IsConnected()) {
         int optval;
         socklen_t optlen = sizeof(optval);
-        int res = getsockopt(fd, SOL_SOCKET, SO_ERROR, &optval, optlen);
+        int res = getsockopt(conn->GetFd(), SOL_SOCKET, SO_ERROR, &optval, &optlen);
         if (res < 0 || optval) {
             LOG_ERROR("connect to server fail");
             delete conn;
-            m_ConnStat.erase(it);
+            m_ConnStat.erase(conn->GetFd());
             return;
         }
-        conn->SetConnected();
+        conn->SetConnected(1);
         OnConnectFdCallBack(conn);    
     } else {
         //TODO
@@ -222,22 +222,26 @@ void CBaseServer::HandlePackage()
             while (!recvList->empty()) {
                 CPackage *package = recvList->front();
                 recvList->pop_front();
-                this->FromRpcCall(package);
+                this->OnRpcCall(package);
                 delete package;
             }
         }
     }
 }
 
-int CBaseServer::FromRpcCall(CPackage *package)
+int CBaseServer::OnRpcCall(CPackage *package)
 {
-    uint16_t cmd_id;
+    CMD_ID cmd_id;
     package->UnPackCmd(cmd_id); 
-    
+    //TODO 是否有解包出错
+    return RpcDispatch(cmd_id, package);
+}
+
+int CBaseServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)
+{
     switch(cmd_id) {
         case MSG_CMD_RPC:
-            m_Rpc->Dispatch(package);
-            break;
+            return m_Rpc->Dispatch(package);
         default:
             break;
     }
@@ -264,20 +268,28 @@ int CBaseServer::ConnectToServer(SERVER_TYPE server_type, SERVER_ID server_id, c
     return 0;
 }
 
-int OnConnectFdCallBack(CConnState *conn)
+int CBaseServer::OnConnectFdCallBack(CConnState *conn)
 {
     //如果是CENTERD，则发送注册信息
     if (conn->GetServerType() == SERVER_TYPE_CENTERD) {
-        m_Rpc->RpcCall(conn, );
+        std::string pwd = m_Config->GetConfig("global", "CLUSTER_PWD");
+        CPackage *pack = new CPackage();
+        pack->PackCmd(MSG_CMD_SERVER_REGISTER);
+        pack->PackInt(conn->GetServerType());
+        pack->PackString(pwd);
+        conn->PushSendPackList(pack);
+    } else {
+        //如果是CENTERD，则发送注册信息
+        
     }
 }
 
-int OnAccecptFdCallBack(CConnState *conn)
+int CBaseServer::OnAcceptFdCallBack(CConnState *conn)
 {
     
 }
 
-int OnCloseFdCallBack(CPackage *package)
+int CBaseServer::OnCloseFdCallBack(CConnState *conn)
 {
     
 }

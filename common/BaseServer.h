@@ -3,6 +3,7 @@
 
 #include <list>
 #include <unordered_map>
+#include "Common.h"
 
 namespace XEngine
 {
@@ -20,12 +21,13 @@ public:
         MAX_EVENT = 9999,
     };
 public:
-    CBaseServer();
+    CBaseServer(SERVER_TYPE server_type);
     virtual ~CBaseServer();
     virtual void Init();
     virtual void Run();
 protected:
-    virtual int FromRpcCall(CPackage *package);
+    int OnRpcCall(CPackage *package);
+    int RpcDispatch(CMD_ID cmd, CPackage *package); //子类覆盖
 protected:
     virtual int OnAcceptFdCallBack(CConnState *conn);
     virtual int OnConnectFdCallBack(CConnState *conn);
@@ -33,18 +35,18 @@ protected:
 private:
     void HandleNewConnection();
     void AddFdToEpoll(int fd);
-    void HandleRecvMsg(int fd);
+    void HandleRecvMsg(CConnState *conn);
+    void HandleWriteMsg(CConnState *conn);
     void HandlePackage();
-    int ConnectToServer(SERVER_ID server_id, const char *ip, int port);
+    int ConnectToServer(SERVER_TYPE server_type, SERVER_ID server_id, const char *ip, int port);
     CConnState *GetServerConnById(SERVER_ID server_id);
     CConnState *AddServerConn(SERVER_ID server_id);
     CConnState *DelServerConn(SERVER_ID server_id);
 private:
-    int m_ServerId; 
-    int m_epoll_fd; 
-    int m_listen_fd; 
-    int m_tick;
+    SERVER_ID m_ServerId; 
     SERVER_TYPE m_ServerType; 
+    int m_EpollFd; 
+    int m_ListenFd; 
     CRpc *m_Rpc;
     CConfigParser *m_Config;
     std::unordered_map<int, CConnState *> m_ConnStat;

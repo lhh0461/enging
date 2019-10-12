@@ -37,7 +37,7 @@ public:
     };
 public:
     CConnState() = default;
-    CConnState(const char *ip, int port, int flag);
+    CConnState(SERVER_TYPE server_type, SERVER_ID server_id, const char *ip, int port, int flag);
     ~CConnState();
 public:
     //连接标识
@@ -62,13 +62,19 @@ public:
     int GetSendBufPos() { return m_SendBufPos; };
     int GetSendBufLeftSize() { return SEND_BUF_SIZE - m_SendBufPos; };
     int SetSendBufLen(int len) { m_SendBufPos = len; };
+    //获得连接信息
+    int GetFd() { return m_Fd; };
+    int GetServerId() { return m_ServerId; };
+    int SetServerId(SERVER_ID id) { m_ServerId = id; };
+    int GetServerType() { return m_ServerType; };
 public:
+    int PushSendPackList(CPackage *package) { m_SendPackList->push_back(package); };
     std::list<CPackage *> *GetRecvPackList() { return m_RecvPackList; };
     std::list<CPackage *> *GetSendPackList() { return m_SendPackList; };
 private:
     int m_Fd;
-    int m_ServerId; //是服务器的连接才有用
-    int m_ServerType; //是服务器的连接才有用
+    SERVER_TYPE m_ServerId; //是服务器的连接才有用
+    SERVER_TYPE m_ServerType; //是服务器的连接才有用
     int m_ConnFlag;
     int m_ConnStat;
     int m_IsConnected;

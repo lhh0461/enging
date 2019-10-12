@@ -21,8 +21,8 @@ public:
     int DelEntity(ENTITY_ID id);
     CEntity *GetEntity(ENTITY_ID id);
 public:
-    int AddMailBox(ENTITY_TYPE etype, CMailBox *mailbox);
-    CMailBox *GetMailBox(ENTITY_TYPE etype);
+    int AddGlobalEntity(ENTITY_TYPE etype, CMailBox *mailbox);
+    CMailBox *GetGlobalEntity(ENTITY_TYPE etype);
 private:
     CEntityMgr(CEntityMgr& other);
     CEntityMgr(const CEntityMgr&);

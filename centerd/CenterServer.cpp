@@ -1,14 +1,3 @@
-#include <sys/epoll.h>
-//#include <string>
-#include <iostream>
-//#include <sys/types.h>
-#include <sys/socket.h>
-//#include <errno.h>
-//#include <unistd.h>
-//#include <fcntl.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include "CenterServer.h"
 #include "Log.h"
 #include "NetTool.h"
@@ -22,10 +11,7 @@ namespace XEngine
 {
 
 CCenterServer::CCenterServer()
-    :m_epoll_fd(0), m_listen_fd(0)
 {
-    m_Config = new CConfigParser();
-    m_Rpc = new CRpc();
 }
 
 CCenterServer::~CCenterServer()
@@ -35,24 +21,22 @@ CCenterServer::~CCenterServer()
 
 int CCenterServer::OnServerRegister(CPackage *package)
 {
-    
+    return 1;
 }
 
-int CCenterServer::FromRpcCall(CPackage *package)
+int CCenterServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)
 {
-    uint16_t cmd_id;
-    package->UnPackCmd(cmd_id); 
+    //解析成功，直接返回
+    if (CBaseServer::RpcDispatch(cmd_id, package)) {
+        return 1;
+    }
     
     switch(cmd_id) {
         case MSG_CMD_SERVER_REGISTER:
-            OnServerRegister(package);
-        case MSG_CMD_RPC:
-            m_Rpc->Dispatch(package);
-            break;
+            return OnServerRegister(package);
         default:
             break;
     }
-    LOG_INFO("FromRpcCall end");
     return 0;
 }
 

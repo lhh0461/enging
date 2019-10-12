@@ -3,7 +3,7 @@ CC=gcc
 CFLAGS=-W -g
 
 CXX=g++
-CXXFLAGS=-W -std=c++11 -g -fno-stack-protector
+CXXFLAGS=-W -std=c++11 -g
 PKG_FLAG=`pkg-config --libs --cflags glib-2.0`
 LINK=-Wl,-rpath,$(JEMALLOC_DIR)/lib
 

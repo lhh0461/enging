@@ -1,3 +1,4 @@
+#if 0
 #include <Python.h>
 #include <msgpack.hpp>
 #include "Rpc.h"
@@ -106,3 +107,4 @@ PyInit_rpc(void)
 
     return m;
 }
+#endif

@@ -8,7 +8,7 @@ CMailBox::CMailBox()
 {
 }
 
-CMailBox::CMailBox(SERVER_ID sid, ENTITY_TPYE etype, ENTITY_ID eid)
+CMailBox::CMailBox(SERVER_ID sid, ENTITY_TYPE etype, ENTITY_ID eid)
     :m_ServerId(sid), m_EntityType(etype), m_EntityId(eid)
 {
 }

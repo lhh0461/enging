@@ -420,9 +420,4 @@ int CRpc::Dispatch(CPackage *package)
     return 0;
 }
 
-int CRpc::RpcCall(const CPackage *package)
-{
-    
-}
-
 }

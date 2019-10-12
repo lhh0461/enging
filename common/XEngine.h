@@ -4,6 +4,6 @@
 #include <Python.h>
 
 PyMODINIT_FUNC
-PyInit_efunc(void);
+PyInit_XEngine(void);
 
 #endif //__EGN_FUNC__

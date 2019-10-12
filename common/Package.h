@@ -18,6 +18,7 @@ namespace XEngine
 {
 
 class CBuffer;
+class CMailBox;
 
 //代表一个数据包
 class CPackage
@@ -65,6 +66,7 @@ public:
     bool PackBool(bool val);
     bool PackBytes(const char * ptr, size_t len);
     bool PackBytes(const std::string & val);
+    bool PackMailBox(const CMailBox *mailbox);
 public:
     const char * GetPkgBuf();
     size_t GetPkgLen();

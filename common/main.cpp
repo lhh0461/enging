@@ -3,7 +3,7 @@
 
 int main(int argc, char *argv[])
 {
-    XEngine::CBaseServer *pServer = new XEngine::CBaseServer(SERVER_TYPE_GAMED);
+    XEngine::CBaseServer *pServer = new XEngine::CBaseServer(XEngine::SERVER_TYPE_GAMED);
     pServer->Init();
     pServer->Run();
 }

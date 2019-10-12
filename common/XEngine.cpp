@@ -32,7 +32,8 @@ static PyObject *ICreateEntity(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "s", &entity_name))
         return NULL;
-    return PyEntityObj_New(entity_name);
+    //return PyEntityObj_New(entity_name);
+    Py_RETURN_NONE;
 }
 
 static PyObject *ICreateEntityAnyWhere(PyObject *self, PyObject *args)
@@ -42,9 +43,7 @@ static PyObject *ICreateEntityAnyWhere(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &entity_name))
         return NULL;
     
-    new CPackage()
-    Rpc->RpcCall()
-    return Py_RETURN_NONE;
+    Py_RETURN_NONE;
 }
 
 static PyObject *ICreateEntityRemote(PyObject *self, PyObject *args)
@@ -54,8 +53,8 @@ static PyObject *ICreateEntityRemote(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &entity_name))
         return NULL;
 
-    Rpc->RpcCall()
-    return Py_RETURN_NONE;
+    //Rpc->RpcCall()
+    Py_RETURN_NONE;
 }
 
 static PyObject *IDestroyEntity(PyObject *self, PyObject *args)
@@ -64,7 +63,8 @@ static PyObject *IDestroyEntity(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "s", &entity_name))
         return NULL;
-    return PyEntityObj_New(entity_name);
+    //return PyEntityObj_New(entity_name);
+    Py_RETURN_NONE;
 }
 
 static PyObject *IRpcCall(PyObject *self, PyObject *args)
@@ -88,8 +88,8 @@ static PyObject *IRpcCall(PyObject *self, PyObject *args)
         PyErr_SetString(RpcError, "rpc dispatch fail");
         return NULL;
     }   
-    Py_RETURN_NONE;
     */
+    Py_RETURN_NONE;
 }
 
 static PyObject *IConnectToServer(PyObject *self, PyObject *args)
@@ -109,11 +109,11 @@ static PyMethodDef PyXEngineMethods[] = {
     {"create_entity", (PyCFunction)ICreateEntity, METH_VARARGS, "pack from python obj to bytes" },
     {"create_entity_anywhere", (PyCFunction)ICreateEntityAnyWhere, METH_VARARGS, "pack from python obj to bytes" },
     {"create_entity_remote", (PyCFunction)ICreateEntityRemote, METH_VARARGS, "pack from python obj to bytes" },
-    {"register_global_service", (PyCFunction)IRegisterGlobalService, METH_VARARGS, "pack from python obj to bytes" },
+    //{"register_global_service", (PyCFunction)IRegisterGlobalService, METH_VARARGS, "pack from python obj to bytes" },
     {"destroy_entity", (PyCFunction)IDestroyEntity, METH_VARARGS, "pack from python obj to bytes" },
     {"connect_to_server", (PyCFunction)IConnectToServer, METH_VARARGS, "pack from python obj to bytes" },
     {"rpc_call", (PyCFunction)IDestroyEntity, METH_VARARGS, "pack from python obj to bytes" },
-    {NULL}  /* Sentinel */
+    {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
 static struct PyModuleDef XEngine_module = {
@@ -128,6 +128,6 @@ static struct PyModuleDef XEngine_module = {
 PyMODINIT_FUNC
 PyInit_XEngine(void)
 {
-    printf("on init efunc\n");
+    printf("on init XEngine\n");
     return PyModule_Create(&XEngine_module);
 }

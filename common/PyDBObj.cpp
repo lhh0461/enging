@@ -1,3 +1,4 @@
+#if 0
 #include <Python.h>
 #include <stdio.h>
 #include "dirty.h"
@@ -314,3 +315,4 @@ void init_dirty_dict(void)
 
     printf("on init_dirty_dict\n");
 }
+#endif
