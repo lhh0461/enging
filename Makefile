@@ -1,14 +1,10 @@
 PROJECT=engine
-CC=gcc
-CFLAGS=-W -g
 
 CXX=g++
 CXXFLAGS=-W -std=c++11 -g
-PKG_FLAG=`pkg-config --libs --cflags glib-2.0`
 LINK=-Wl,-rpath,$(JEMALLOC_DIR)/lib
 
 LIB_DIR:=lib
-SRC_DIR:=./common
 INC_DIR:=include
 THIRD_PART_DIR:=3rd
 MSGPACK_DIR:=$(THIRD_PART_DIR)/msgpack
@@ -19,10 +15,9 @@ INC_FILES:=-I$(INC_DIR) \
 	-I$(TINYXML_DIR)/include/\
 	-I/usr/include/python3.5
 
-C_SRC_FILES:=$(foreach v, $(SRC_DIR), $(wildcard $(v)/*.c))
-CXX_SRC_FILES:=$(foreach v, $(SRC_DIR), $(wildcard $(v)/*.cpp))
+CXX_SRC_FILES:=$(wildcard ./common/*.cpp) \
+	$(wildcard ./centerd/*.cpp) \
 
-C_OBJ_FILES:=$(subst .c,.o,$(C_SRC_FILES))
 CXX_OBJ_FILES:=$(subst .cpp,.o,$(CXX_SRC_FILES))
 
 LIBS=-L$(MSGPACK_DIR)/lib \
@@ -31,19 +26,16 @@ LIBS=-L$(MSGPACK_DIR)/lib \
 STATIC_LIBS=-lpython3.5m \
 	-ltinyxml2 \
 
-all:$(C_OBJ_FILES) $(CXX_OBJ_FILES)
-	$(CXX) $(CFLAGS) $(CXX_OBJ_FILES) -o $(PROJECT) $(LIBS) $(STATIC_LIBS)
+all:$(CXX_OBJ_FILES)
+	$(CXX) $(CXXFLAGS) $(CXX_OBJ_FILES) -o $(PROJECT) $(LIBS) $(STATIC_LIBS)
 
-$(SRC_DIR)/%.o:$(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) $< -c -o $@ $(INC_FILES) $(LIBS) $(STATIC_LIBS) $(PKG_FLAG)
-
-$(SRC_DIR)/%.o:$(SRC_DIR)/%.cpp
+$(CXX_OBJ_FILES):%.o:%.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@ $(INC_FILES)
 
 .PHONY:clean rpc stop
 clean:
 	-rm $(PROJECT)
-	-rm -rf $(SRC_DIR)/*.o
+	-rm -rf $(CXX_OBJ_FILES)
 rpc:
 	cd proto/def && protoc --proto_path=./ * --python_out=../output
 stop:

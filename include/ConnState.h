@@ -3,6 +3,7 @@
 
 #include <list>
 #include <string>
+#include "Common.h"
 
 namespace XEngine
 {
