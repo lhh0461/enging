@@ -1,4 +1,3 @@
-#if 0
 #include <Python.h>
 #include <structmember.h>
 
@@ -153,4 +152,3 @@ PyInit_entity(void)
     PyModule_AddObject(m, "Entity", (PyObject *)&PyEntity_Type);
     return m;
 }
-#endif

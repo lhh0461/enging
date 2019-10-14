@@ -26,23 +26,26 @@ public:
     virtual void Init();
     virtual void Run();
 protected:
-    int OnRpcCall(CPackage *package);
     int RpcDispatch(CMD_ID cmd, CPackage *package); //子类覆盖
 protected:
     virtual int OnAcceptFdCallBack(CConnState *conn);
     virtual int OnConnectFdCallBack(CConnState *conn);
     virtual int OnCloseFdCallBack(CConnState *conn);
+public:
+    int ConnectToServer(SERVER_TYPE server_type, SERVER_ID server_id, const char *ip, int port);
+    CConnState *GetServerConnById(SERVER_ID server_id);
+    int GetServerConnByType(SERVER_TYPE server_type, std::list<CConnState *> &conn_list);
+    CEntityMgr *GetEntityMgr() { return m_EntityMgr; };
 private:
+    int OnRpcCall(CPackage *package);
     void HandleNewConnection();
     void AddFdToEpoll(int fd);
     void HandleRecvMsg(CConnState *conn);
     void HandleWriteMsg(CConnState *conn);
     void HandlePackage();
-    int ConnectToServer(SERVER_TYPE server_type, SERVER_ID server_id, const char *ip, int port);
-    CConnState *GetServerConnById(SERVER_ID server_id);
     CConnState *AddServerConn(SERVER_ID server_id);
     CConnState *DelServerConn(SERVER_ID server_id);
-private:
+protected:
     SERVER_ID m_ServerId; 
     SERVER_TYPE m_ServerType; 
     int m_EpollFd; 
@@ -51,7 +54,10 @@ private:
     CConfigParser *m_Config;
     std::unordered_map<int, CConnState *> m_ConnStat;
     std::unordered_map<SERVER_ID, CConnState *> m_ServerId2Conn;
+    CEntityMgr *m_EntityMgr;
 };
+
+extern CBaseServer *g_Server;
 
 }
 

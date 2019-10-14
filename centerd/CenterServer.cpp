@@ -38,7 +38,25 @@ int CCenterServer::OnServerRegister(CPackage *package)
     package->UnPackString(pwd);
     if (package->GetErrCode() > 0) return ERR_UNPACK_FAIL;
 
-    //TODO
+    std::string mypwd = m_Config->GetConfig("global", "CLUSTER_PWD");
+    if (pwd != mypwd) {
+        LOG_ERROR("accept new fd fail");
+        return ERR_FAIL;
+    }
+
+    //SERVER_ID server_id = AssignServerId();
+    //int port = AssignServerPort();
+    SERVER_ID server_id = 0;
+    int port = 0;
+    
+    //CConnState *conn = package->GetConn();
+    //if (conn) {
+    //    CPackage *pack = new CPackage();
+    //    pack->PackCmd(MSG_CMD_SERVER_REGISTER);
+    //    pack->PackInt(conn->GetServerType());
+    //    pack->PackString(pwd);
+    //    conn->PushSendPackList(pack);
+    //}
 
     return ERR_SUCCESS;
 }

@@ -30,9 +30,8 @@ ENTITY_ID CEntityMgr::GenEntityId()
     return m_NextEntityId;
 }
 
-ENTITY_ID CEntityMgr::AddEntity(CEntity *entity)
+ENTITY_ID CEntityMgr::AddEntity(ENTITY_ID entity_id, CEntity *entity)
 {
-    ENTITY_ID id = this->GenEntityId();
     m_AllEntitys.insert(std::pair<ENTITY_ID, CEntity*>(id, entity));
     return id;
 }

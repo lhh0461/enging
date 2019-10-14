@@ -25,8 +25,9 @@ enum {
 //package handle error code
 enum {
     ERR_SUCCESS = 0,
-    ERR_UNKOWN_CMD = -1,
-    ERR_UNPACK_FAIL = -2,
+    ERR_FAIL = -1,
+    ERR_UNKOWN_CMD = -2,
+    ERR_UNPACK_FAIL = -3,
 };
 
 #define CENTERD_ID (1)

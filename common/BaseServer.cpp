@@ -11,11 +11,12 @@
 #include "ConfigParser.h"
 #include "ConnState.h"
 
-
 using namespace std;
 
 namespace XEngine
 {
+
+CBaseServer *g_Server;
 
 CBaseServer::CBaseServer(SERVER_TYPE server_type)
     :m_EpollFd(0), m_ListenFd(0), m_ServerType(server_type)
@@ -233,7 +234,7 @@ int CBaseServer::OnRpcCall(CPackage *package)
 {
     CMD_ID cmd_id;
     package->UnPackCmd(cmd_id); 
-    //TODO 是否有解包出错
+    if (package->GetErrCode() > 0) return ERR_UNPACK_FAIL;
     return RpcDispatch(cmd_id, package);
 }
 
@@ -266,6 +267,20 @@ int CBaseServer::ConnectToServer(SERVER_TYPE server_type, SERVER_ID server_id, c
     m_ConnStat.insert(std::make_pair(conn_fd, conn));
 
     return 0;
+}
+
+int CBaseServer::GetServerConnByType(SERVER_TYPE server_type, std::list<CConnState *> &conn_list)
+{
+    auto it = m_ServerId2Conn.begin();
+    for (; it != m_ServerId2Conn.end(); it++) {
+        CConnState *pConn = it->second;
+        if (pConn) {
+            if (pConn->GetServerType() == server_type) {
+                conn_list.push_back(pConn);
+            }
+        }
+    }
+    return 0; 
 }
 
 int CBaseServer::OnConnectFdCallBack(CConnState *conn)
