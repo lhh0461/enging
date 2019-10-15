@@ -32,7 +32,9 @@ LIBS=-L$(MSGPACK_DIR)/lib \
 STATIC_LIBS=-lpython3.5m \
 	-ltinyxml2 \
 	-lmongocxx \
-	-lbsoncxx
+	-lbsoncxx \
+	-lpthread
+
 
 all:$(CXX_OBJ_FILES)
 	$(CXX) $(CXXFLAGS) $(CXX_OBJ_FILES) -o $(PROJECT) $(LIBS) $(STATIC_LIBS)

@@ -9,15 +9,11 @@ CConnState::CConnState(SERVER_TYPE server_type, SERVER_ID server_id, const char 
     m_ServerId(0), m_ServerType(0)
 {
 
-    m_RecvPackList = new std::list<CPackage *>();
     m_SendPackList = new std::list<CPackage *>();
 }
 
 CConnState::~CConnState()
 {
-    if (m_RecvPackList) {
-        delete m_RecvPackList;
-    }
     if (m_SendPackList) {
         delete m_SendPackList;
     }

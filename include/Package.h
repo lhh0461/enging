@@ -7,6 +7,7 @@
 
 #include "Buffer.h"
 #include "Log.h"
+#include "Commmon.h"
 
 /* 
  * |数据包格式|
@@ -24,7 +25,6 @@ class CMailBox;
 class CPackage
 {
 public:
-    typedef uint16_t PKG_CMD_TYPE;
     typedef uint32_t PKG_HEADER_TYPE;
 public:
     enum {
@@ -35,7 +35,7 @@ public:
     CPackage(const char *buf, size_t size); //for unpack
     ~CPackage();
 public:
-    bool UnPackCmd(PKG_CMD_TYPE & cmd);
+    bool UnPackCmd(CMD_ID & cmd);
     bool UnPackString(std::string & val);
     bool UnPackInt(int8_t & value);
     bool UnPackInt(int16_t & value);
@@ -50,7 +50,7 @@ public:
     bool UnPackBool(bool & val);
     bool UnPackBytes(std::string & val);
 public:
-    bool PackCmd(PKG_CMD_TYPE cmd);
+    bool PackCmd(CMD_ID cmd);
     bool PackString(const char * ptr, size_t len);
     bool PackString(const std::string & val);
     bool PackInt(uint8_t val);
@@ -72,6 +72,7 @@ public:
     size_t GetPkgLen();
     size_t GetPkgDataLen();
     int GetErrCode() { return m_iErrorCode; };
+    void ResetUnpackOffset() { m_iUnpackOffset = 0; };
 private:
     CBuffer *m_Buff;
     size_t m_iUnpackOffset;

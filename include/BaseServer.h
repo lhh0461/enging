@@ -27,6 +27,7 @@ public:
     virtual void Run();
 protected:
     int RpcDispatch(CMD_ID cmd, CPackage *package); //子类覆盖
+    virtual void AddRecvPack(CPackage *package) { m_RecvPackList.push_back(package); };
 protected:
     virtual int OnAcceptFdCallBack(CConnState *conn);
     virtual int OnConnectFdCallBack(CConnState *conn);
@@ -36,6 +37,7 @@ public:
     CConnState *GetServerConnById(SERVER_ID server_id);
     int GetServerConnByType(SERVER_TYPE server_type, std::list<CConnState *> &conn_list);
     CEntityMgr *GetEntityMgr() { return m_EntityMgr; };
+    CLUSTER_ID GetClusterId() { return m_ClusterId; };
 private:
     int OnRpcCall(CPackage *package);
     void HandleNewConnection();
@@ -48,10 +50,12 @@ private:
 protected:
     SERVER_ID m_ServerId; 
     SERVER_TYPE m_ServerType; 
+    CLUSTER_ID m_ClusterId; 
     int m_EpollFd; 
     int m_ListenFd; 
     CRpc *m_Rpc;
     CConfigParser *m_Config;
+    std::list<CPackage *> m_RecvPackList;
     std::unordered_map<int, CConnState *> m_ConnStat;
     std::unordered_map<SERVER_ID, CConnState *> m_ServerId2Conn;
     CEntityMgr *m_EntityMgr;

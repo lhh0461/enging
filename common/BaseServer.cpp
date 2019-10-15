@@ -95,6 +95,8 @@ void CBaseServer::Run()
             }
         }
         HandlePackage();
+        //TODO 遍历所有的连接，然后发包
+        SendPackage();
     }
 }
 
@@ -170,10 +172,7 @@ void CBaseServer::HandleRecvMsg(CConnState *conn)
                     }
 
                     CPackage *package = new CPackage(pRecvCurBuf + sizeof(CPackage::PKG_HEADER_TYPE), packsize);
-
-                    std::list<CPackage *> *recvList = conn->GetRecvPackList(); 
-                    recvList->push_back(package);
-
+                    this->AddRecvPack(package);
                     iCurrentPos += packsize;
                 }
                 if (iCurrentPos > 0 && iCurrentPos != iTotalLen) {
@@ -215,18 +214,11 @@ void CBaseServer::HandleWriteMsg(CConnState *conn)
 
 void CBaseServer::HandlePackage()
 {
-    auto it = m_ConnStat.begin();
-    for (; it != m_ConnStat.end(); it++) {
-        CConnState *pConnState = it->second;
-        if (pConnState) {
-            std::list<CPackage *> *recvList = pConnState->GetRecvPackList(); 
-            while (!recvList->empty()) {
-                CPackage *package = recvList->front();
-                recvList->pop_front();
-                this->OnRpcCall(package);
-                delete package;
-            }
-        }
+    while (!m_RecvPackList.empty()) {
+        CPackage *package = m_RecvPackList.front();
+        m_RecvPackList.pop_front();
+        this->OnRpcCall(package);
+        delete package;
     }
 }
 
@@ -235,7 +227,11 @@ int CBaseServer::OnRpcCall(CPackage *package)
     CMD_ID cmd_id;
     package->UnPackCmd(cmd_id); 
     if (package->GetErrCode() > 0) return ERR_UNPACK_FAIL;
-    return RpcDispatch(cmd_id, package);
+    int err_code = RpcDispatch(cmd_id, package);
+    if (err_code != ERR_SUCCESS) {
+        LOG_ERROR("OnRpcCall dispatch fail");
+    }
+    return err_code;
 }
 
 int CBaseServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)
@@ -246,7 +242,6 @@ int CBaseServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)
         default:
             break;
     }
-    LOG_INFO("FromRpcCall end");
     return 0;
 }
 

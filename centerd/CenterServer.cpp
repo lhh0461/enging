@@ -18,6 +18,7 @@ CCenterServer::~CCenterServer()
 {
 
 }
+
 void CCenterServer::Init()
 {
 
@@ -63,19 +64,17 @@ int CCenterServer::OnServerRegister(CPackage *package)
 
 int CCenterServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)
 {
-    //解析成功，直接返回
-    if (CBaseServer::RpcDispatch(cmd_id, package)) {
-        return 1;
+    int err_code = CBaseServer::RpcDispatch(cmd_id, package);
+    if (err_code == ERR_UNKOWN_CMD) {
+        switch(cmd_id) {
+            case MSG_CMD_SERVER_REGISTER:
+                return OnServerRegister(package);
+            default:
+                break;
+        }
+    } else {
+        return err_code;
     }
-    
-    switch(cmd_id) {
-        case MSG_CMD_SERVER_REGISTER:
-            return OnServerRegister(package);
-        default:
-            //TODO error log
-            break;
-    }
-    return ERR_UNKOWN_CMD;
 }
 
 }

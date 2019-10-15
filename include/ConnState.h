@@ -70,7 +70,6 @@ public:
     int GetServerType() { return m_ServerType; };
 public:
     int PushSendPackList(CPackage *package) { m_SendPackList->push_back(package); };
-    std::list<CPackage *> *GetRecvPackList() { return m_RecvPackList; };
     std::list<CPackage *> *GetSendPackList() { return m_SendPackList; };
 private:
     int m_Fd;
@@ -88,7 +87,6 @@ private:
     int m_RecvBufPos;
     CPackage *m_CurPackage;
 private:
-    std::list<CPackage *> *m_RecvPackList;
     std::list<CPackage *> *m_SendPackList;
 };
 

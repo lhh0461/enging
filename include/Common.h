@@ -11,6 +11,7 @@ typedef uint8_t  SERVER_TYPE;
 typedef uint16_t CMD_ID;
 typedef uint32_t ENTITY_ID;
 typedef uint8_t  ENTITY_TYPE;
+typedef uint16_t CLUSTER_ID;
 
 enum {
     SERVER_TYPE_NULL = 0,
