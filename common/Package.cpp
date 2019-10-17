@@ -60,7 +60,7 @@ CPackage::~CPackage()
         std::cout << obj << std::endl; \
     } while(0);
 
-bool CPackage::UnPackCmd(PKG_CMD_TYPE & cmd)
+bool CPackage::UnPackCmd(CMD_ID & cmd)
 {
     return UnPackInt(cmd);
 }
@@ -252,7 +252,7 @@ bool CPackage::UnPackBytes(std::string & val)
 //-----------------unpack end--------------------
 
 //-----------------pack begin--------------------
-bool CPackage::PackCmd(PKG_CMD_TYPE cmd)
+bool CPackage::PackCmd(CMD_ID cmd)
 {
     msgpack::packer<CBuffer> packer(m_Buff);
     packer.pack(cmd);

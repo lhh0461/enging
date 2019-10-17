@@ -24,6 +24,7 @@ private:
     void OnLoadDataFromDB();
 private:
     mongocxx::client *m_MongoConn;
+    static mongocxx::instance *m_MongoInstance;
 };
 
 }

@@ -27,7 +27,12 @@ CBaseServer::CBaseServer(SERVER_TYPE server_type)
 
 CBaseServer::~CBaseServer()
 {
-
+    if (m_Config) {
+        delete m_Config;
+    }
+    if (m_Rpc) {
+        delete m_Rpc;
+    }
 }
 
 void CBaseServer::Init()
@@ -37,7 +42,7 @@ void CBaseServer::Init()
         exit(1);
     }
 
-    m_Rpc->Init("./rpc/");
+    m_Rpc->Init(m_Config->GetConfig("global", "RPC_PATH"));
 
     std::string ip = m_Config->GetConfig("global", "IP");
     int port = atoi(m_Config->GetConfig("global", "PORT").c_str());
@@ -53,7 +58,7 @@ void CBaseServer::Init()
     LOG_INFO("server init success");
 
     m_ListenFd = fd;
-    AddFdToEpoll(fd);
+    AddFdToEpoll(fd, EPOLLIN|EPOLLET);
     PyImport_AppendInittab("XEngine", PyInit_XEngine);
 
     Py_Initialize();
@@ -79,8 +84,7 @@ void CBaseServer::Run()
         {
             if (events[i].data.fd == m_ListenFd) {
                 HandleNewConnection();
-            }
-            else { 
+            } else { 
                 auto it = m_ConnStat.find(events[i].data.fd);
                 if (it == m_ConnStat.end()) {
                     continue; 
@@ -94,6 +98,7 @@ void CBaseServer::Run()
                 }
             }
         }
+        //处理所有的包
         HandlePackage();
         //TODO 遍历所有的连接，然后发包
         SendPackage();
@@ -112,21 +117,31 @@ void CBaseServer::HandleNewConnection()
 
     SetBlock(conn_fd, 0, NULL);
 
-    AddFdToEpoll(conn_fd);
+    AddFdToEpoll(conn_fd, EPOLLIN|EPOLLET);
 
-    CConnState *conn = new CConnState(0, 0, ip.c_str(),port, CONN_ACCEPTED_FLAG|CONN_CLIENT_FLAG);
+    CConnState *conn = new CConnState(conn_fd, ip.c_str(),port, CONN_ACCEPTED_FLAG|CONN_CLIENT_FLAG);
     conn->SetConnected(1);
     m_ConnStat.insert(std::make_pair(conn_fd, conn));
 
     OnAcceptFdCallBack(conn);
 }
 
-void CBaseServer::AddFdToEpoll(int fd)
+void CBaseServer::AddFdToEpoll(int fd, uint32_t events)
 {
     struct epoll_event ev;
+    memset(&ev, 0, sizeof(ev));
     ev.data.fd = fd;
-    ev.events = EPOLLIN|EPOLLET;
+    ev.events = events;
     epoll_ctl(m_EpollFd, EPOLL_CTL_ADD, fd, &ev);
+}
+
+void CBaseServer::ModifFdEpollEvents(int fd, uint32_t events)
+{
+    struct epoll_event ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.data.fd = fd;
+    ev.events = events;
+    epoll_ctl(m_EpollFd, EPOLL_CTL_MOD, fd, &ev);
 }
 
 void CBaseServer::HandleRecvMsg(CConnState *conn)
@@ -222,6 +237,21 @@ void CBaseServer::HandlePackage()
     }
 }
 
+void CBaseServer::SendPackage()
+{
+/*
+    auto it = m_ConnStat.begin();
+    for (; it != m_ConnStat.end(); it++) {
+        CConnState *conn = it->second;
+        if (conn) {
+            std::list<CPackage *> *send_list = conn->GetSendPackList();
+            while (!m_RecvPackList.empty()) {
+
+        }
+    }
+    */
+}
+
 int CBaseServer::OnRpcCall(CPackage *package)
 {
     CMD_ID cmd_id;
@@ -255,10 +285,12 @@ int CBaseServer::ConnectToServer(SERVER_TYPE server_type, SERVER_ID server_id, c
 
     SetBlock(conn_fd, 0, NULL);
 
-    AddFdToEpoll(conn_fd);
+    AddFdToEpoll(conn_fd, EPOLLOUT);
 
     //创建连接状态
-    CConnState *conn = new CConnState(server_type, server_id, ip, port, CONN_MAILBOX_FLAG|CONN_HARBOR_FLAG);
+    CConnState *conn = new CConnState(conn_fd, ip, port, CONN_MAILBOX_FLAG|CONN_HARBOR_FLAG);
+    conn->SetServerType(server_type);
+    conn->SetServerId(server_id);
     m_ConnStat.insert(std::make_pair(conn_fd, conn));
 
     return 0;
@@ -278,19 +310,27 @@ int CBaseServer::GetServerConnByType(SERVER_TYPE server_type, std::list<CConnSta
     return 0; 
 }
 
+//连接服务器成功回调
 int CBaseServer::OnConnectFdCallBack(CConnState *conn)
 {
+    ModifFdEpollEvents(conn->GetFd(), EPOLLIN|EPOLLET);
+     
     //如果是CENTERD，则发送注册信息
     if (conn->GetServerType() == SERVER_TYPE_CENTERD) {
         std::string pwd = m_Config->GetConfig("global", "CLUSTER_PWD");
         CPackage *pack = new CPackage();
         pack->PackCmd(MSG_CMD_SERVER_REGISTER);
-        pack->PackInt(conn->GetServerType());
+        pack->PackInt(GetServerType());
         pack->PackString(pwd);
         conn->PushSendPackList(pack);
     } else {
-        //如果是CENTERD，则发送注册信息
-        
+        //如果不是CENTERD，则同步我的服务器信息给对方
+        std::string pwd = m_Config->GetConfig("global", "CLUSTER_PWD");
+        CPackage *pack = new CPackage();
+        pack->PackCmd(MSG_CMD_SYNC_SERVER_INFO);
+        pack->PackInt(GetServerType());
+        pack->PackString(pwd);
+        conn->PushSendPackList(pack);
     }
 }
 

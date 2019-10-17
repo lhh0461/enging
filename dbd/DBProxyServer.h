@@ -3,17 +3,14 @@
 
 #include <unordered_map>
 
-#include "Package.h"
-#include "Rpc.h"
-#include "Worker.h"
-#include "ConfigParser.h"
 #include "BaseServer.h"
-#include "ConnState.h"
+#include "Common.h"
 
 namespace XEngine
 {
 
 class CWorkerMgr;
+class CPackage;
 
 class CDBProxyServer : public CBaseServer
 {
@@ -23,11 +20,7 @@ public:
     void Init();
     void Run();
     int RpcDispatch(CMD_ID cmd_id, CPackage *package);
-    mongocxx::instance & GetMongoInstance();
-protected:
 private:
-private:
-    mongocxx::instance instance;
     CWorkerMgr *m_WorkerMgr;
 };
 

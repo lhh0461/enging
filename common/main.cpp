@@ -6,6 +6,8 @@
 #include "Log.h"
 #include "Common.h"
 
+using namespace XEngine;
+
 int main(int argc, char *argv[])
 {
     

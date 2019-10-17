@@ -40,13 +40,15 @@ all:$(CXX_OBJ_FILES)
 	$(CXX) $(CXXFLAGS) $(CXX_OBJ_FILES) -o $(PROJECT) $(LIBS) $(STATIC_LIBS)
 
 $(CXX_OBJ_FILES):%.o:%.cpp
-	$(CXX) $(CXXFLAGS) $< -c $@ $(INC_FILES)
+	$(CXX) $(CXXFLAGS) $< -c -o $@ $(INC_FILES)
 
-.PHONY:clean rpc stop
-clean:
-	-rm $(PROJECT)
-	-rm -rf $(CXX_OBJ_FILES)
+.PHONY:clean rpc lib stop
+#clean:
+#	-rm $(PROJECT)
+#	-rm -rf $(CXX_OBJ_FILES)
 rpc:
 	cd proto/def && protoc --proto_path=./ * --python_out=../output
+lib:
+	cp include/* 
 stop:
 	pkill engine

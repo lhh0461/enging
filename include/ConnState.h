@@ -19,6 +19,7 @@ enum eConnFlag
     CONN_HARBOR_FLAG = (1<<4), //是服务器之间的连接
     CONN_CREATING_FLAG = (1<<5), //已经认证
 };
+
 //连接状态机所处的状态
 enum eConnStat
 {
@@ -38,7 +39,7 @@ public:
     };
 public:
     CConnState() = default;
-    CConnState(SERVER_TYPE server_type, SERVER_ID server_id, const char *ip, int port, int flag);
+    CConnState(int fd, const char *ip, int port, int flag);
     ~CConnState();
 public:
     //连接标识
@@ -68,6 +69,7 @@ public:
     int GetServerId() { return m_ServerId; };
     int SetServerId(SERVER_ID id) { m_ServerId = id; };
     int GetServerType() { return m_ServerType; };
+    int SetServerType(SERVER_TYPE type) { m_ServerType = type; };
 public:
     int PushSendPackList(CPackage *package) { m_SendPackList->push_back(package); };
     std::list<CPackage *> *GetSendPackList() { return m_SendPackList; };

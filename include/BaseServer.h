@@ -36,15 +36,18 @@ public:
     int ConnectToServer(SERVER_TYPE server_type, SERVER_ID server_id, const char *ip, int port);
     CConnState *GetServerConnById(SERVER_ID server_id);
     int GetServerConnByType(SERVER_TYPE server_type, std::list<CConnState *> &conn_list);
-    CEntityMgr *GetEntityMgr() { return m_EntityMgr; };
     CLUSTER_ID GetClusterId() { return m_ClusterId; };
+    SERVER_ID GetServerId() { return m_ServerId; };
+    SERVER_TYPE GetServerType() { return m_ServerType; };
 private:
     int OnRpcCall(CPackage *package);
     void HandleNewConnection();
-    void AddFdToEpoll(int fd);
+    void AddFdToEpoll(int fd, uint32_t events);
+    void ModifFdEpollEvents(int fd, uint32_t events);
     void HandleRecvMsg(CConnState *conn);
     void HandleWriteMsg(CConnState *conn);
     void HandlePackage();
+    void SendPackage();
     CConnState *AddServerConn(SERVER_ID server_id);
     CConnState *DelServerConn(SERVER_ID server_id);
 protected:
@@ -58,7 +61,6 @@ protected:
     std::list<CPackage *> m_RecvPackList;
     std::unordered_map<int, CConnState *> m_ConnStat;
     std::unordered_map<SERVER_ID, CConnState *> m_ServerId2Conn;
-    CEntityMgr *m_EntityMgr;
 };
 
 extern CBaseServer *g_Server;

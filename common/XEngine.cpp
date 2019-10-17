@@ -1,7 +1,8 @@
 #include <Python.h>
 #include <stdio.h>
-
 #include "XEngine.h"
+#if 0
+
 #include "EntityMgr.h"
 #include "Rpc.h"
 
@@ -174,8 +175,10 @@ static PyObject *IConnectToServer(PyObject *self, PyObject *args)
 
     Py_RETURN_NONE;
 }
+#endif
 
 static PyMethodDef PyXEngineMethods[] = {
+    /*
     {"add_timer", (PyCFunction)IAddTimer, METH_VARARGS, "pack from python obj to bytes" },
     {"del_timer", (PyCFunction)IDelTimer, METH_VARARGS, "pack from python obj to bytes" },
     {"create_entity", (PyCFunction)ICreateEntity, METH_VARARGS, "pack from python obj to bytes" },
@@ -187,6 +190,7 @@ static PyMethodDef PyXEngineMethods[] = {
     {"destroy_entity", (PyCFunction)IDestroyEntity, METH_VARARGS, "pack from python obj to bytes" },
     {"connect_to_server", (PyCFunction)IConnectToServer, METH_VARARGS, "pack from python obj to bytes" },
     {"rpc_call", (PyCFunction)IDestroyEntity, METH_VARARGS, "pack from python obj to bytes" },
+    */
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -205,3 +209,4 @@ PyInit_XEngine(void)
     printf("on init XEngine\n");
     return PyModule_Create(&XEngine_module);
 }
+

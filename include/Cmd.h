@@ -3,13 +3,14 @@
 
 #include "Common.h"
 
-//每种服类型预留100个CMD
-#define SERVER_CMD_BEGIN(server_type) (server_type*100)
+//每种服类型预留128个CMD,最开始128个是通用指令
+#define SERVER_CMD_BEGIN(server_type) (server_type<<8)
 
 //common cmd
 #define MSG_CMD_RPC (SERVER_CMD_BEGIN(SERVER_TYPE_NULL)+1)
 #define MSG_CMD_HEARTBEAT (SERVER_CMD_BEGIN(SERVER_TYPE_NULL)+2)
 #define MSG_CMD_CREATE_ENTIRY_CALLBACK (SERVER_CMD_BEGIN(SERVER_TYPE_NULL)+3)
+#define MSG_CMD_SYNC_SERVER_INFO (SERVER_CMD_BEGIN(SERVER_TYPE_NULL)+4)
 
 //centerd cmd
 #define MSG_CMD_SERVER_REGISTER (SERVER_CMD_BEGIN(SERVER_TYPE_CENTERD)+1) //其他服向centerd注册

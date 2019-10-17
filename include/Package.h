@@ -7,7 +7,7 @@
 
 #include "Buffer.h"
 #include "Log.h"
-#include "Commmon.h"
+#include "Common.h"
 
 /* 
  * |数据包格式|
