@@ -35,7 +35,6 @@ STATIC_LIBS=-lpython3.5m \
 	-lbsoncxx \
 	-lpthread
 
-
 all:$(CXX_OBJ_FILES)
 	$(CXX) $(CXXFLAGS) $(CXX_OBJ_FILES) -o $(PROJECT) $(LIBS) $(STATIC_LIBS)
 
@@ -43,9 +42,9 @@ $(CXX_OBJ_FILES):%.o:%.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@ $(INC_FILES)
 
 .PHONY:clean rpc lib stop
-#clean:
-#	-rm $(PROJECT)
-#	-rm -rf $(CXX_OBJ_FILES)
+clean:
+	-rm $(PROJECT)
+	-rm -rf $(CXX_OBJ_FILES)
 rpc:
 	cd proto/def && protoc --proto_path=./ * --python_out=../output
 lib:

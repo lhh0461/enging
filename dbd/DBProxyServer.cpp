@@ -4,6 +4,7 @@
 #include "Cmd.h"
 #include "Common.h"
 #include "ConfigParser.h"
+#include "WorkerMgr.h"
 #include "Package.h"
 
 namespace XEngine
@@ -12,7 +13,7 @@ namespace XEngine
 CDBProxyServer::CDBProxyServer()
     :CBaseServer(SERVER_TYPE_DBD)
 {
-    m_WorkerMgr = new CWorkerMgr();
+    m_WorkerMgr = new CWorkerMgr<DBTask>();
 }
 
 CDBProxyServer::~CDBProxyServer()

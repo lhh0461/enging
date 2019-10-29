@@ -1,5 +1,5 @@
-#ifndef __DBTASK__
-#define __DBTASK__
+#ifndef __DB_WORKER__
+#define __DB_WORKER__
 
 #include <unordered_map>
 
@@ -13,13 +13,13 @@
 namespace XEngine
 {
 
-class CDBTask
+class CDBWorker
 {
 public:
-    CDBTask();
-    ~CDBTask();
-    int RpcDispatch(CPackage *package);
-protected:
+    CDBWorker();
+    ~CDBWorker();
+    int Init();
+    int Process(void *package);
 private:
     void OnLoadDataFromDB();
 private:
@@ -29,5 +29,5 @@ private:
 
 }
 
-#endif //__DBTASK__
+#endif //__DB_WORKER__
 
