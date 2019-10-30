@@ -7,55 +7,71 @@
 
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>
+#include <mongocxx/instance.hpp>
 #include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
 
-using bsoncxx::builder::stream::close_array;
-using bsoncxx::builder::stream::close_document;
-using bsoncxx::builder::stream::document;
-using bsoncxx::builder::stream::finalize;
-using bsoncxx::builder::stream::open_array;
-using bsoncxx::builder::stream::open_document;
-
+#include "Rpc.h"
 #include "Package.h"
+#include "Cmd.h"
+#include "ConfigParser.h"
+#include "BaseServer.h"
+#include "DBWorker.h"
 
 namespace XEngine
 {
 
-class CDBTask::CDBTask()
+CDBWorker::CDBWorker()
+    :CWorker()
 {
-    //TODO 读取配置文件url
-    std::string uri = m_Config->GetConfig("global", "MONGO_URI");
+    CConfigParser *conf = g_Server->GetConfig();
+    std::string uri_cfg = conf->GetConfig("global", "MONGO_URI");
+    mongocxx::uri uri(uri_cfg);
     m_MongoConn = new mongocxx::client(uri);
 }
 
-void CDBTask::OnLoadDataFromDB()
+int CDBWorker::Init()
 {
-    int cluster_id = GetClusterId();
-    
+}
+
+int CDBWorker::LoadDataFromDB(CPackage *package)
+{
     std::string entity_name; 
     package->UnPackString(entity_name);
     if (package->GetErrCode() > 0) return ERR_UNPACK_FAIL;
-    package->UnPackString(pwd);
+
+    string key;
+    package->UnPackString(key);
     if (package->GetErrCode() > 0) return ERR_UNPACK_FAIL;
 
-    std::string entity_name = GetEntityNameByType(entity_type);
-    std::string collection;
+    std::string coll_name;
     if (entity_name == "PlayerEntity") {
-        collection = "user";
+        coll_name = "user";
     } else {
-        collection = "dat";
+        coll_name = "dat";
     }
-    
+    CLUSTER_ID cluster_id = g_Server->GetClusterId();
+    auto db = m_MongoConn[g_Server->GetDBName()];
+
+    auto collection = db[coll_name];
+    auto cursor = collection.find({});
+
+    for (auto&& doc : cursor) {
+        std::cout << bsoncxx::to_json(doc) << std::endl;
+    }
 }
 
-int CDBTask::RpcDispatch(CPackage *package);
+int CDBWorker::Process(void *Task)
 {
+    CPackage *package = (CPackage *)Task;
+    CMD_ID cmd_id;
+    package->UnPackCmd(cmd_id); 
+    if (package->GetErrCode() > 0) return ERR_UNPACK_FAIL;
     switch(cmd_id) {
         case MSG_CMD_LOAD_DATA_FROM_DB:
-            return OnLoadDataFromDB(package);
+            return LoadDataFromDB(package);
         default:
-            LOG_ERROR("CDBProxyServer::RpcDispatch fail");
+            LOG_ERROR("CDBWorker::Process fail");
             break;
     }
     return ERR_UNKOWN_CMD;

@@ -15,7 +15,9 @@ INC_FILES:=-I$(INC_DIR) \
 	-I$(TINYXML_DIR)/include/ \
 	-I/usr/include/python3.5 \
 	-I/usr/local/include/mongocxx/v_noabi \
-	-I/usr/local/include/bsoncxx/v_noabi
+	-I/usr/local/include/libmongoc-1.0 \
+	-I/usr/local/include/bsoncxx/v_noabi \
+	-I/usr/local/include/libbson-1.0
 
 CXX_SRC_FILES:=$(wildcard ./common/*.cpp) \
 	$(wildcard ./centerd/*.cpp) \

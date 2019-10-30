@@ -23,6 +23,11 @@ CBaseServer::CBaseServer(SERVER_TYPE server_type)
 {
     m_Config = new CConfigParser();
     m_Rpc = new CRpc();
+
+    if (m_Config->Parser("./config.ini") == false) {
+        LOG_ERROR("server init fail");
+        exit(1);
+    }
 }
 
 CBaseServer::~CBaseServer()
@@ -37,11 +42,7 @@ CBaseServer::~CBaseServer()
 
 void CBaseServer::Init()
 {
-    if (m_Config->Parser("./config.ini") == false) {
-        LOG_ERROR("server init fail");
-        exit(1);
-    }
-
+    m_ClusterId = atoi(m_Config->GetConfig("global", "CLUSTER_ID").c_str());
     m_Rpc->Init(m_Config->GetConfig("global", "RPC_PATH"));
 
     std::string ip = m_Config->GetConfig("global", "IP");

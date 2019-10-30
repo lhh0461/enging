@@ -28,6 +28,7 @@ public:
 protected:
     int RpcDispatch(CMD_ID cmd, CPackage *package); //子类覆盖
     virtual void AddRecvPack(CPackage *package) { m_RecvPackList.push_back(package); };
+    virtual void SendPackage();
 protected:
     virtual int OnAcceptFdCallBack(CConnState *conn);
     virtual int OnConnectFdCallBack(CConnState *conn);
@@ -39,6 +40,7 @@ public:
     CLUSTER_ID GetClusterId() { return m_ClusterId; };
     SERVER_ID GetServerId() { return m_ServerId; };
     SERVER_TYPE GetServerType() { return m_ServerType; };
+    CConfigParser *GetConfig() { return m_Config; };
 private:
     int OnRpcCall(CPackage *package);
     void HandleNewConnection();
@@ -47,13 +49,12 @@ private:
     void HandleRecvMsg(CConnState *conn);
     void HandleWriteMsg(CConnState *conn);
     void HandlePackage();
-    void SendPackage();
     CConnState *AddServerConn(SERVER_ID server_id);
     CConnState *DelServerConn(SERVER_ID server_id);
-protected:
-    SERVER_ID m_ServerId; 
-    SERVER_TYPE m_ServerType; 
-    CLUSTER_ID m_ClusterId; 
+private:
+    SERVER_ID m_ServerId; //中心服分配的具体ID
+    SERVER_TYPE m_ServerType; //服务器类型
+    CLUSTER_ID m_ClusterId; //集群ID
     int m_EpollFd; 
     int m_ListenFd; 
     CRpc *m_Rpc;

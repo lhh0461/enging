@@ -2,6 +2,7 @@
 #include <getopt.h>
 
 #include "../centerd/CenterServer.h"
+#include "../dbd/DBProxyServer.h"
 #include "BaseServer.h"
 #include "Log.h"
 #include "Common.h"
@@ -38,7 +39,7 @@ int main(int argc, char *argv[])
                 LOG_DEBUG("start gamed server");
                 break;
             case 'd':
-                g_Server = new XEngine::CBaseServer(XEngine::SERVER_TYPE_GAMED);
+                g_Server = new XEngine::CDBProxyServer();
                 LOG_DEBUG("start dbd server");
                 break;
             case ':':

@@ -1,30 +1,32 @@
 #ifndef __DB_WORKER__
 #define __DB_WORKER__
 
-#include <unordered_map>
+#include <string>
+#include <list>
+#include <iostream>
+#include <cstdint>
+#include <vector>
 
-#include "Package.h"
-#include "Rpc.h"
-#include "Worker.h"
-#include "ConfigParser.h"
-#include "BaseServer.h"
-#include "ConnState.h"
+#include <mongocxx/client.hpp>
+
+#include "WorkerMgr.h"
 
 namespace XEngine
 {
 
-class CDBWorker
+class CPackage;
+
+class CDBWorker : public CWorker
 {
 public:
     CDBWorker();
     ~CDBWorker();
     int Init();
-    int Process(void *package);
+    int Process(void *Task);
 private:
-    void OnLoadDataFromDB();
+    int LoadDataFromDB(CPackage *package);
 private:
     mongocxx::client *m_MongoConn;
-    static mongocxx::instance *m_MongoInstance;
 };
 
 }
