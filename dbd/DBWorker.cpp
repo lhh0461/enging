@@ -15,7 +15,7 @@
 #include "Package.h"
 #include "Cmd.h"
 #include "ConfigParser.h"
-#include "BaseServer.h"
+#include "DBProxyServer.h"
 #include "DBWorker.h"
 
 namespace XEngine
@@ -27,7 +27,7 @@ CDBWorker::CDBWorker()
     CConfigParser *conf = g_Server->GetConfig();
     std::string uri_cfg = conf->GetConfig("global", "MONGO_URI");
     mongocxx::uri uri(uri_cfg);
-    m_MongoConn = new mongocxx::client(uri);
+    m_MongoClient = new mongocxx::client(uri);
 }
 
 int CDBWorker::Init()
@@ -50,8 +50,10 @@ int CDBWorker::LoadDataFromDB(CPackage *package)
     } else {
         coll_name = "dat";
     }
-    CLUSTER_ID cluster_id = g_Server->GetClusterId();
-    auto db = m_MongoConn[g_Server->GetDBName()];
+
+    CDBProxyServer *pServer = (CDBProxyServer *)g_Server;
+    CLUSTER_ID cluster_id = pServer->GetClusterId();
+    auto db = m_MongoClient->database(pServer->GetDBName().c_str());
 
     auto collection = db[coll_name];
     auto cursor = collection.find({});

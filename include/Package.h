@@ -20,6 +20,7 @@ namespace XEngine
 
 class CBuffer;
 class CMailBox;
+class CConnState;
 
 //代表一个数据包
 class CPackage
@@ -69,6 +70,7 @@ public:
     bool PackMailBox(const CMailBox *mailbox);
 public:
     const char * GetPkgBuf();
+    CConnState* GetPkgConn() { return m_ConnStat; };
     size_t GetPkgLen();
     size_t GetPkgDataLen();
     int GetErrCode() { return m_iErrorCode; };
@@ -77,6 +79,7 @@ private:
     CBuffer *m_Buff;
     size_t m_iUnpackOffset;
     int m_iErrorCode;
+    CConnState *m_ConnStat;
 };
 
 }

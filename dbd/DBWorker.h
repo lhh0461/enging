@@ -26,7 +26,7 @@ public:
 private:
     int LoadDataFromDB(CPackage *package);
 private:
-    mongocxx::client *m_MongoConn;
+    mongocxx::client *m_MongoClient;
 };
 
 }

@@ -6,6 +6,7 @@
 #include "NetTool.h"
 #include "Cmd.h"
 #include "Common.h"
+#include "ConnState.h"
 #include "ConfigParser.h"
 #include "WorkerMgr.h"
 #include "Package.h"
@@ -30,8 +31,8 @@ void CDBProxyServer::Init()
     //TODO 调用到脚本层做初始化
     CBaseServer::Init(); 
     char cBuf[128] = {0};
-    std;:string strProjectName = m_Config->GetConfig("global", "PROJECT_NAME");
-    m_DBName = sprintf(cBuf, "%s_%d", strProjectName.c_str(), GetClusterId();
+    std::string strProjectName = m_Config->GetConfig("global", "PROJECT_NAME");
+    m_DBName = sprintf(cBuf, "%s_%d", strProjectName.c_str(), GetClusterId());
 }
 
 void CDBProxyServer::Run()
@@ -63,7 +64,7 @@ void CDBProxyServer::SendPackage()
     if (send_list.size()  > 0) {
         while (!send_list.empty()) {
             CPackage *package = send_list.front();
-            CConnState *conn = package->GetPackConn();
+            CConnState *conn = package->GetPkgConn();
             if (conn) {
                 conn->PushSendPackList(package);
             }
@@ -80,8 +81,6 @@ int CDBProxyServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)
     int err_code = CBaseServer::RpcDispatch(cmd_id, package);
     if (err_code == ERR_UNKOWN_CMD) {
         switch(cmd_id) {
-            case MSG_CMD_LOAD_DATA_FROM_DB:
-                return OnLoadDataFromDB(package);
             default:
                 LOG_ERROR("CDBProxyServer::RpcDispatch fail");
                 break;

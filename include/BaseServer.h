@@ -51,14 +51,14 @@ private:
     void HandlePackage();
     CConnState *AddServerConn(SERVER_ID server_id);
     CConnState *DelServerConn(SERVER_ID server_id);
-private:
+protected:
     SERVER_ID m_ServerId; //中心服分配的具体ID
     SERVER_TYPE m_ServerType; //服务器类型
     CLUSTER_ID m_ClusterId; //集群ID
+    CConfigParser *m_Config;
     int m_EpollFd; 
     int m_ListenFd; 
     CRpc *m_Rpc;
-    CConfigParser *m_Config;
     std::list<CPackage *> m_RecvPackList;
     std::unordered_map<int, CConnState *> m_ConnStat;
     std::unordered_map<SERVER_ID, CConnState *> m_ServerId2Conn;

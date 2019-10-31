@@ -9,6 +9,7 @@
 namespace XEngine
 {
 
+class CPackage;
 class CWorkerMgr;
 
 //工作者(继承用)
@@ -42,13 +43,15 @@ public:
     int StopWorker();
     int PushTask(void *pTask);
     static void *WorkerMain(void *);
+    std::list<CPackage *> GetSendList() { return m_SendQueue; };
 private:
+    eWorkerType m_WorkerType;
     std::vector<CWorker *> m_Workers;
     int m_WorkerCnt;
-    eWorkerType m_WorkerType;
     bool m_Quit;
     unsigned m_Counter;
-
+    pthread_mutex_t m_SendMutex;
+    std::list<CPackage *> m_SendQueue;
 };
 
 }
