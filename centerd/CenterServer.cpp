@@ -21,12 +21,18 @@ CCenterServer::~CCenterServer()
 
 void CCenterServer::Init()
 {
+    SetLogFileName(m_Config->GetConfig("centerd", "LOG_PATH").c_str());
+    CBaseServer::Init();
 
+    std::string ip = m_Config->GetConfig("centerd", "IP");
+    int port = atoi(m_Config->GetConfig("centerd", "PORT").c_str());
+
+    AddListenFd(ip, port);
 }
 
 void CCenterServer::Run()
 {
-
+    CBaseServer::Run();
 }
 
 int CCenterServer::OnServerRegister(CPackage *package)
@@ -64,6 +70,7 @@ int CCenterServer::OnServerRegister(CPackage *package)
 
 int CCenterServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)
 {
+    LOG_DEBUG("rpc dispatch cmd_id=%d", cmd_id);
     int err_code = CBaseServer::RpcDispatch(cmd_id, package);
     if (err_code == ERR_UNKOWN_CMD) {
         switch(cmd_id) {

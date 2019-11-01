@@ -1,4 +1,5 @@
 #include <sys/epoll.h>
+#include <unistd.h>
 
 #include "BaseServer.h"
 #include "Log.h"
@@ -11,8 +12,6 @@
 #include "ConfigParser.h"
 #include "ConnState.h"
 
-using namespace std;
-
 namespace XEngine
 {
 
@@ -24,7 +23,7 @@ CBaseServer::CBaseServer(SERVER_TYPE server_type)
     m_Config = new CConfigParser();
     m_Rpc = new CRpc();
 
-    if (m_Config->Parser("./config.ini") == false) {
+    if (m_Config->Parser("./etc/config.ini") == false) {
         LOG_ERROR("server init fail");
         exit(1);
     }
@@ -45,21 +44,10 @@ void CBaseServer::Init()
     m_ClusterId = atoi(m_Config->GetConfig("global", "CLUSTER_ID").c_str());
     m_Rpc->Init(m_Config->GetConfig("global", "RPC_PATH"));
 
-    std::string ip = m_Config->GetConfig("global", "IP");
-    int port = atoi(m_Config->GetConfig("global", "PORT").c_str());
-
     m_EpollFd = epoll_create(MAX_EVENT); 
     
-    int fd = Listen(ip.c_str(), port, 1024);
-    if (fd < 0) {
-        LOG_ERROR("listen port fail;port=%d", port);
-        exit(1);
-    }
-
     LOG_INFO("server init success");
 
-    m_ListenFd = fd;
-    AddFdToEpoll(fd, EPOLLIN|EPOLLET);
     PyImport_AppendInittab("XEngine", PyInit_XEngine);
 
     Py_Initialize();
@@ -106,6 +94,18 @@ void CBaseServer::Run()
     }
 }
 
+void CBaseServer::AddListenFd(std::string ip, int port)
+{
+    int fd = Listen(ip.c_str(), port, 1024);
+    if (fd < 0) {
+        LOG_ERROR("listen port fail;port=%d", port);
+        exit(1);
+    }
+
+    m_ListenFd = fd;
+    AddFdToEpoll(fd, EPOLLIN|EPOLLET);
+}
+
 void CBaseServer::HandleNewConnection()
 {
     std::string ip;
@@ -125,6 +125,7 @@ void CBaseServer::HandleNewConnection()
     m_ConnStat.insert(std::make_pair(conn_fd, conn));
 
     OnAcceptFdCallBack(conn);
+    LOG_DEBUG("OnAcceptFdCallBack");
 }
 
 void CBaseServer::AddFdToEpoll(int fd, uint32_t events)
@@ -223,6 +224,7 @@ void CBaseServer::HandleWriteMsg(CConnState *conn)
         }
         conn->SetConnected(1);
         OnConnectFdCallBack(conn);    
+        LOG_DEBUG("connect fd success");
     } else {
         //TODO
     }
@@ -240,17 +242,16 @@ void CBaseServer::HandlePackage()
 
 void CBaseServer::SendPackage()
 {
-/*
     auto it = m_ConnStat.begin();
     for (; it != m_ConnStat.end(); it++) {
         CConnState *conn = it->second;
         if (conn) {
             std::list<CPackage *> *send_list = conn->GetSendPackList();
-            while (!m_RecvPackList.empty()) {
-
+            while (!send_list->empty()) {
+                
+            }
         }
     }
-    */
 }
 
 int CBaseServer::OnRpcCall(CPackage *package)
@@ -294,6 +295,7 @@ int CBaseServer::ConnectToServer(SERVER_TYPE server_type, SERVER_ID server_id, c
     conn->SetServerId(server_id);
     m_ConnStat.insert(std::make_pair(conn_fd, conn));
 
+    LOG_INFO("connect to server;server_type=%d,server_id=%d,ip=%s,port=%d",server_type,server_id,ip,port);
     return 0;
 }
 
@@ -314,6 +316,7 @@ int CBaseServer::GetServerConnByType(SERVER_TYPE server_type, std::list<CConnSta
 //连接服务器成功回调
 int CBaseServer::OnConnectFdCallBack(CConnState *conn)
 {
+    LOG_INFO("OnConnectFdCallBack");
     ModifFdEpollEvents(conn->GetFd(), EPOLLIN|EPOLLET);
      
     //如果是CENTERD，则发送注册信息

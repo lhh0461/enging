@@ -7,12 +7,16 @@
 
 #include "Log.h"
 
+namespace XEngine
+{
+
 #define MAX_TIME_STR_LEN  30
+#define MAX_LOG_FILE_NAME 128 
 #define MAX_LOG_BUF_LEN   256
 
-static const char *g_log_file = "engine.log";
 static char g_strLogBuf[MAX_LOG_BUF_LEN];
 static LOG_LEVEL g_eLogSwitch = LOG_DEBUG;
+static char g_LogFileName[MAX_LOG_FILE_NAME];
 static FILE *g_fp = NULL;
 
 static inline const char *_level_string(LOG_LEVEL level)
@@ -58,7 +62,7 @@ void debug_printf(LOG_LEVEL level, const char *filename, int fileline, const cha
     va_end(args);
 
     if (g_fp == NULL) {
-        g_fp = fopen(g_log_file, "w");
+        g_fp = fopen(g_LogFileName, "w");
         if (!g_fp) {
             perror("open log file error.");
             return;
@@ -71,8 +75,14 @@ void debug_printf(LOG_LEVEL level, const char *filename, int fileline, const cha
     fflush(stderr);
 }
 
-void set_log_switch_level(LOG_LEVEL e_switch_level)
+void SetLogSwitchLevel(LOG_LEVEL e_switch_level)
 {
     g_eLogSwitch = e_switch_level;
 }
 
+void SetLogFileName(const char *file_name)
+{
+    sprintf(g_LogFileName, "%s",file_name);
+}
+
+}

@@ -19,7 +19,6 @@ public:
     CGameServer();
     ~CGameServer();
     void Init();
-    void Run();
     int RpcDispatch(CMD_ID cmd_id, CPackage *package);
 private:
     CEntityMgr *m_EntityMgr;

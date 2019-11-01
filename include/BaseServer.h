@@ -29,6 +29,7 @@ protected:
     int RpcDispatch(CMD_ID cmd, CPackage *package); //子类覆盖
     virtual void AddRecvPack(CPackage *package) { m_RecvPackList.push_back(package); };
     virtual void SendPackage();
+    void AddListenFd(std::string ip, int port);
 protected:
     virtual int OnAcceptFdCallBack(CConnState *conn);
     virtual int OnConnectFdCallBack(CConnState *conn);

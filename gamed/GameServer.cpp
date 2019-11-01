@@ -20,12 +20,8 @@ CGameServer::~CGameServer()
 }
 void CGameServer::Init()
 {
-
-}
-
-void CGameServer::Run()
-{
-
+    SetLogFileName(m_Config->GetConfig("gamed", "LOG_PATH").c_str());
+    CBaseServer::Init();
 }
 
 int CGameServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)

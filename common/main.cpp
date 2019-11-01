@@ -1,11 +1,13 @@
 #include <unistd.h>
 #include <getopt.h>
 
-#include "../centerd/CenterServer.h"
-#include "../dbd/DBProxyServer.h"
-#include "BaseServer.h"
 #include "Log.h"
 #include "Common.h"
+#include "BaseServer.h"
+
+#include "../centerd/CenterServer.h"
+#include "../dbd/DBProxyServer.h"
+#include "../gamed/GameServer.h"
 
 using namespace XEngine;
 
@@ -35,7 +37,7 @@ int main(int argc, char *argv[])
                 g_Server = new XEngine::CCenterServer();
                 break;
             case 'g':
-                g_Server = new XEngine::CBaseServer(XEngine::SERVER_TYPE_GAMED);
+                g_Server = new XEngine::CGameServer();
                 LOG_DEBUG("start gamed server");
                 break;
             case 'd':
@@ -52,8 +54,10 @@ int main(int argc, char *argv[])
 
     } while (next_option !=-1);
 
-    g_Server->Init();
-    g_Server->Run();
+    if (g_Server) {
+        g_Server->Init();
+        g_Server->Run();
+    }
 
     return 0;
 }

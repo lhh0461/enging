@@ -206,7 +206,6 @@ static struct PyModuleDef XEngine_module = {
 PyMODINIT_FUNC
 PyInit_XEngine(void)
 {
-    printf("on init XEngine\n");
     return PyModule_Create(&XEngine_module);
 }
 

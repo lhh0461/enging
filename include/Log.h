@@ -4,6 +4,9 @@
 #include <errno.h>
 #include <assert.h>
 
+namespace XEngine
+{
+
 typedef enum {
 	LOG_ALL   = 0x00,
 	LOG_DEBUG = 0x01,       /*调试信息*/
@@ -31,8 +34,10 @@ void debug_printf(LOG_LEVEL level, const char *filename, int fileline, const cha
 #define LOG_FATAL(log...) \
     debug_printf(LOG_FATAL, __FILE__, __LINE__, log)
 
+void SetLogSwitchLevel(LOG_LEVEL switch_level);
+void SetLogFileName(const char *file_name);
 
-void set_log_switch_level(LOG_LEVEL switch_level);
+}
 
 #endif //__LOG_H__
 
