@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
                 return 0;
             case 'c':
                 g_Server = new XEngine::CCenterServer();
+                LOG_DEBUG("start center server");
                 break;
             case 'g':
                 g_Server = new XEngine::CGameServer();

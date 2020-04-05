@@ -5,7 +5,8 @@
 #include "ConfigParser.h"
 #include "Util.h"
 
-using namespace XEngine;
+namespace XEngine
+{
 
 CConfigParser::CConfigParser()
 {
@@ -148,3 +149,4 @@ string CConfigParser::GetDefConfig(const string & cSection, const string & cKey,
     return cDef;
 }
 
+}

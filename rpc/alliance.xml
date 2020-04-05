@@ -8,30 +8,14 @@
             <arg>RPC_BOOL</arg>
             <arg>RPC_STRING</arg>
             <arg>RPC_FLOAT</arg>
+            <arg>RPC_BLOB</arg>
         </args>
         <rpc_deamon>GAMED</rpc_deamon>
     </rpc>
     <rpc>
-        <function>get_alliance_info_req</function>
-        <path>module.hello</path>
+        <function>rpc_client_alliance_resp</function>
         <args>
             <arg>RPC_INT</arg>
-            <arg>RPC_INT</arg>
-        </args>
-        <rpc_deamon>GAMED</rpc_deamon>
-    </rpc>
-    <rpc>
-        <function>rpc_host_alliance_resp</function>
-        <path>module.hello</path>
-        <args>
-            <arg>RPC_INT</arg>
-            <arg>RPC_STRING</arg>
-        </args>
-        <rpc_type>GAMED</rpc_type>
-    </rpc>
-    <rpc>
-        <function>rpc_client_alliance_info</function>
-        <args>
             <arg>RPC_STRING</arg>
         </args>
         <rpc_deamon>CLIENT</rpc_deamon>

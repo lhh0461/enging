@@ -12,15 +12,16 @@ namespace XEngine
 CGameServer::CGameServer()
     :CBaseServer(SERVER_TYPE_GAMED)
 {
+    SetLogFileName(m_Config->GetConfig("gamed", "LOG_PATH").c_str());
 }
 
 CGameServer::~CGameServer()
 {
 
 }
-void CGameServer::Init()
+int CGameServer::Init()
 {
-    SetLogFileName(m_Config->GetConfig("gamed", "LOG_PATH").c_str());
+    std::cout << m_Config->GetConfig("gamed", "LOG_PATH") << std::endl;
     CBaseServer::Init();
 }
 

@@ -1,4 +1,10 @@
+/**
+ * 网络模型：
+ * 一个主线程接受到连接后把连接socket就扔到子线程
+ *
+ */
 #include <sys/epoll.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "BaseServer.h"
@@ -39,10 +45,11 @@ CBaseServer::~CBaseServer()
     }
 }
 
-void CBaseServer::Init()
+int CBaseServer::Init()
 {
     m_ClusterId = atoi(m_Config->GetConfig("global", "CLUSTER_ID").c_str());
     m_Rpc->Init(m_Config->GetConfig("global", "RPC_PATH"));
+     
 
     m_EpollFd = epoll_create(MAX_EVENT); 
     
@@ -56,7 +63,8 @@ void CBaseServer::Init()
 
     //都主动去连CENTERD
     if (m_ServerType != SERVER_TYPE_CENTERD) {
-        if (ConnectToServer(SERVER_TYPE_CENTERD, CENTERD_ID, m_Config->GetConfig("centerd", "IP").c_str(), atoi(m_Config->GetConfig("centerd", "PORT").c_str()))) {
+        if (ConnectToServer(SERVER_TYPE_CENTERD, CENTERD_ID, m_Config->GetConfig("centerd", "IP").c_str(), atoi(m_Config->GetConfig("centerd", "PORT").c_str())))
+        {
             LOG_ERROR("connect to centerd fail");
             exit(1);
         }
@@ -104,6 +112,7 @@ void CBaseServer::AddListenFd(std::string ip, int port)
 
     m_ListenFd = fd;
     AddFdToEpoll(fd, EPOLLIN|EPOLLET);
+    LOG_INFO("listen success.ip=%s,port=%d,m_ListenFd=%d", ip.c_str(), port, m_ListenFd);
 }
 
 void CBaseServer::HandleNewConnection()
@@ -112,7 +121,7 @@ void CBaseServer::HandleNewConnection()
     int port;
     int conn_fd = Accept(m_ListenFd, ip, port);
     if (conn_fd < 0) {
-        LOG_ERROR("accept new fd fail");
+        LOG_ERROR("accept new fd fail,listen_fd=%d,ip=%s,port=%d,errstr=%s",m_ListenFd,ip.c_str(), port, strerror(errno));
         return;
     }
 
@@ -125,7 +134,7 @@ void CBaseServer::HandleNewConnection()
     m_ConnStat.insert(std::make_pair(conn_fd, conn));
 
     OnAcceptFdCallBack(conn);
-    LOG_DEBUG("OnAcceptFdCallBack");
+    LOG_INFO("accept new conn_fd=%d",conn_fd);
 }
 
 void CBaseServer::AddFdToEpoll(int fd, uint32_t events)
@@ -155,16 +164,18 @@ void CBaseServer::HandleRecvMsg(CConnState *conn)
             //剩余的的缓冲区
             char *pRecvCurBuf = conn->GetRecvCurBuf();
             int iRecvBufLeftSize = conn->GetRecvBufLeftSize();
-            //读取数据到缓冲区
+            //读取数据到缓冲区，缓冲区当前buf位置、剩余buf的偏移
             size_t num = ::recv(conn->GetFd(), pRecvCurBuf, iRecvBufLeftSize, 0);
             if (num == (size_t)-1) {
                 if (errno == EINTR) {
                     continue;
                 }
-                if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                else if (errno == EAGAIN || errno == EWOULDBLOCK) {
                     continue;
+                } else {
+                    LOG_ERROR("recv msg error");
+                    break;
                 }
-                break;
             }
             else if (num > 0) {
                 size_t iTotalLen = conn->GetRecvBufPos() + num;
@@ -188,6 +199,7 @@ void CBaseServer::HandleRecvMsg(CConnState *conn)
                         break;
                     }
 
+                    LOG_DEBUG("CBaseServer::HandleRecvMsg iTotalLen=%d", iTotalLen);
                     CPackage *package = new CPackage(pRecvCurBuf + sizeof(CPackage::PKG_HEADER_TYPE), packsize);
                     this->AddRecvPack(package);
                     iCurrentPos += packsize;
@@ -199,11 +211,13 @@ void CBaseServer::HandleRecvMsg(CConnState *conn)
                     //也许还有数据没读取完毕
                     continue;
                 } else {
+                    //数据已经读取完毕
                     break;
                 }
             }
             else {
                 //对端已经关闭连接
+                //TODO 检查是否需要重连
                 OnCloseFdCallBack(conn);
             }
         }
@@ -234,9 +248,11 @@ void CBaseServer::HandlePackage()
 {
     while (!m_RecvPackList.empty()) {
         CPackage *package = m_RecvPackList.front();
+        LOG_DEBUG("CBaseServer::HandlePackage package");
         m_RecvPackList.pop_front();
-        this->OnRpcCall(package);
+        int res = this->OnRpcCall(package);
         delete package;
+        LOG_DEBUG("CBaseServer::HandlePackage package res=%d",res);
     }
 }
 
@@ -246,10 +262,7 @@ void CBaseServer::SendPackage()
     for (; it != m_ConnStat.end(); it++) {
         CConnState *conn = it->second;
         if (conn) {
-            std::list<CPackage *> *send_list = conn->GetSendPackList();
-            while (!send_list->empty()) {
-                
-            }
+            conn->SendPackage();
         }
     }
 }
@@ -274,14 +287,14 @@ int CBaseServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)
         default:
             break;
     }
-    return 0;
+    return ERR_UNKOWN_CMD;
 }
 
 int CBaseServer::ConnectToServer(SERVER_TYPE server_type, SERVER_ID server_id, const char *ip, int port)
 {
     int conn_fd = Connect(ip, port, 0);
     if (conn_fd < 0) {
-        LOG_ERROR("accept new fd fail");
+        LOG_ERROR("connect fd fail,ip=%s,port=%d",ip, port);
         return -1;
     }
 
@@ -327,6 +340,7 @@ int CBaseServer::OnConnectFdCallBack(CConnState *conn)
         pack->PackInt(GetServerType());
         pack->PackString(pwd);
         conn->PushSendPackList(pack);
+        LOG_INFO("send register msg,pwd=%s", pwd.c_str());
     } else {
         //如果不是CENTERD，则同步我的服务器信息给对方
         std::string pwd = m_Config->GetConfig("global", "CLUSTER_PWD");
@@ -343,6 +357,7 @@ int CBaseServer::OnAcceptFdCallBack(CConnState *conn)
     
 }
 
+//重载用
 int CBaseServer::OnCloseFdCallBack(CConnState *conn)
 {
     

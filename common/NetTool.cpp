@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 
 #include "NetTool.h"
+#include "Log.h"
 
 namespace XEngine
 {
@@ -24,11 +25,19 @@ int Listen(const char *ip, int port, int backlog)
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr(ip);
     serv_addr.sin_port = htons(port);
+
+    int reuse = 1;
+    if (0 > setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int))) {
+        close(fd);
+        return -1; 
+    }
     if (0 < bind(fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr))) {
+        close(fd);
         return -1;
     }
 
     if (listen(fd, backlog) < 0) {
+        close(fd);
         return -1;
     }
     
@@ -61,11 +70,12 @@ int Connect(const char *ip, int port, int block)
 int Accept(int listen_fd, std::string &ip, int &port)
 {
     struct sockaddr_in addr;
-    socklen_t addrlen;
+    socklen_t addrlen = sizeof(addr);
 
+    memset(&addr, 0, sizeof(struct sockaddr));
     int conn_fd = accept(listen_fd, (struct sockaddr *) &addr, &addrlen);
     if (conn_fd < 0) {
-        perror("fs net connect");
+        perror("accept fail");
         return -1;
     }
 

@@ -57,7 +57,6 @@ CPackage::~CPackage()
             return false; \
         } \
         obj = result.get(); \
-        std::cout << obj << std::endl; \
     } while(0);
 
 bool CPackage::UnPackCmd(CMD_ID & cmd)

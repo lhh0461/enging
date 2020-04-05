@@ -24,9 +24,11 @@ protected:
     int FromRpcCall(CPackage *package);
 private:
     int OnServerRegister(CPackage *package);
+    SERVER_ID AssignServerId(SERVER_TYPE iServerType);
+    int AssignServerPort();
 private:
     //CLoadBalance *m_LoadBalance;
-    //CLoadBalance *m_LoadBalance;
+    std::unordered_map<SERVER_TYPE, int> m_ServerCount;
 };
 
 }

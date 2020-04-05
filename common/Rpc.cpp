@@ -397,7 +397,7 @@ int CRpc::Dispatch(CPackage *package)
         return -1;
     }
 
-    fprintf(stderr, "Dispatch. pid=%d\n", pid);
+   LOG_DEBUG("Dispatch. pid=%d\n", pid);
     const stRpcFunction *pFunction = GetFunctionById(pid);
     if (pFunction == NULL) {
         fprintf(stderr, "CRpc::Dispatch can't find pid function. pid=%d\n", pid);
