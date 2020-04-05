@@ -1,10 +1,10 @@
 #include "GameServer.h"
-#include "Log.h"
+#include "CLog.h"
 #include "NetTool.h"
 #include "Cmd.h"
 #include "Common.h"
-#include "ConfigParser.h"
-#include "Package.h"
+#include "CConfigParser.h"
+#include "CPackage.h"
 
 namespace XEngine
 {
@@ -12,22 +12,23 @@ namespace XEngine
 CGameServer::CGameServer()
     :CBaseServer(SERVER_TYPE_GAMED)
 {
+    SetLogFileName(m_Config->GetConfig("gamed", "LOG_PATH").c_str());
 }
 
 CGameServer::~CGameServer()
 {
 
 }
-void CGameServer::Init()
+int CGameServer::Init()
 {
-    SetLogFileName(m_Config->GetConfig("gamed", "LOG_PATH").c_str());
+    std::cout << m_Config->GetConfig("gamed", "LOG_PATH") << std::endl;
     CBaseServer::Init();
 }
 
-int CGameServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)
+int CGameServer::CmdDispatch(CMD_ID cmd_id, CPackage *package)
 {
     //解析成功，直接返回
-    if (CBaseServer::RpcDispatch(cmd_id, package)) {
+    if (CBaseServer::CmdDispatch(cmd_id, package)) {
         return 1;
     }
     

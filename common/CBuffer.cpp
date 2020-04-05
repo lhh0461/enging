@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <cstring>
 #include <new>
-#include "Buffer.h"
+#include "CBuffer.h"
 
 namespace XEngine
 {
@@ -59,16 +59,7 @@ CBuffer& CBuffer::operator=(CBuffer& other)
     return *this;
 }
 
-void CBuffer::write(const char* buf, size_t len)
-{
-    if(m_alloc - m_size < len) {
-        Expand(len);
-    }
-    std::memcpy(m_data + m_size, buf, len);
-    m_size += len;
-}
-
-void CBuffer::Expand(size_t len)
+int CBuffer::Expand(size_t len)
 {
     size_t nsize = (m_alloc > 0) ?
         m_alloc * 2 : BUFFER_INIT_SIZE;
@@ -89,6 +80,13 @@ void CBuffer::Expand(size_t len)
 
     m_data = static_cast<char*>(tmp);
     m_alloc = nsize;
+    return 0;
+}
+
+int CBuffer::Expand()
+{
+    Expand(BUFFER_INIT_SIZE);
+    return 0;
 }
 
 }

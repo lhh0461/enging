@@ -1,6 +1,7 @@
 #ifndef __DB_WORKER__
 #define __DB_WORKER__
 
+/*
 #include <string>
 #include <list>
 #include <iostream>
@@ -10,6 +11,7 @@
 #include <mongocxx/client.hpp>
 
 #include "WorkerMgr.h"
+#include "CWorker.h"
 
 namespace XEngine
 {
@@ -30,6 +32,7 @@ private:
 };
 
 }
+*/
 
 #endif //__DB_WORKER__
 

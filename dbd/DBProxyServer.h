@@ -1,9 +1,10 @@
 #ifndef __DB_PROXY_SERVER__
 #define __DB_PROXY_SERVER__
 
+/*
 #include <string>
 
-#include "BaseServer.h"
+#include "CBaseServer.h"
 #include "Common.h"
 
 namespace XEngine
@@ -17,7 +18,7 @@ class CDBProxyServer : public CBaseServer
 public:
     CDBProxyServer();
     ~CDBProxyServer();
-    void Init();
+    int Init();
     void Run();
     void AddRecvPack(CPackage *package);
     void SendPackage();
@@ -29,6 +30,7 @@ private:
 };
 
 }
+*/
 
 #endif //__DB_PROXY_SERVER__
 

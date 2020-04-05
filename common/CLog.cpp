@@ -3,9 +3,10 @@
 #include <time.h>
 #include <errno.h>
 #include <stdarg.h>
-#include <string.h>
+#include <string>
+#include <iostream>
 
-#include "Log.h"
+#include "CLog.h"
 
 namespace XEngine
 {
@@ -65,6 +66,7 @@ void debug_printf(LOG_LEVEL level, const char *filename, int fileline, const cha
         g_fp = fopen(g_LogFileName, "w");
         if (!g_fp) {
             perror("open log file error.");
+            std::cout << std::string(g_LogFileName) << std::endl;
             return;
         }
     }

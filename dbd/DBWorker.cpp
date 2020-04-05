@@ -1,4 +1,6 @@
 //本文件在子线程执行
+//
+/*
 #include <string>
 #include <list>
 #include <iostream>
@@ -11,10 +13,11 @@
 #include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
 
-#include "Rpc.h"
-#include "Package.h"
+#include "CRpc.h"
+#include "CPackage.h"
+#include "DBWorker.h"
 #include "Cmd.h"
-#include "ConfigParser.h"
+#include "CConfigParser.h"
 #include "DBProxyServer.h"
 #include "DBWorker.h"
 
@@ -80,4 +83,5 @@ int CDBWorker::Process(void *Task)
 }
 
 }
+*/
 

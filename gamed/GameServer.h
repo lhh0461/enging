@@ -3,11 +3,11 @@
 
 #include <unordered_map>
 
-#include "Package.h"
-#include "Rpc.h"
-#include "ConfigParser.h"
-#include "BaseServer.h"
-#include "ConnState.h"
+#include "CPackage.h"
+#include "CRpc.h"
+#include "CConfigParser.h"
+#include "CBaseServer.h"
+#include "CConnState.h"
 #include "EntityMgr.h"
 
 namespace XEngine
@@ -18,8 +18,8 @@ class CGameServer : public CBaseServer
 public:
     CGameServer();
     ~CGameServer();
-    void Init();
-    int RpcDispatch(CMD_ID cmd_id, CPackage *package);
+    int Init();
+    int CmdDispatch(CMD_ID cmd_id, CPackage *package);
 private:
     CEntityMgr *m_EntityMgr;
 };

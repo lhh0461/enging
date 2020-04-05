@@ -70,12 +70,13 @@ public:
     int SetServerId(SERVER_ID id) { m_ServerId = id; };
     int GetServerType() { return m_ServerType; };
     int SetServerType(SERVER_TYPE type) { m_ServerType = type; };
+    int SendPackage();
 public:
     int PushSendPackList(CPackage *package) { m_SendPackList->push_back(package); };
     std::list<CPackage *> *GetSendPackList() { return m_SendPackList; };
 private:
     int m_Fd;
-    SERVER_TYPE m_ServerId; //是服务器的连接才有用
+    SERVER_ID m_ServerId; //是服务器的连接才有用
     SERVER_TYPE m_ServerType; //是服务器的连接才有用
     int m_ConnFlag;
     int m_ConnStat;
@@ -88,6 +89,7 @@ private:
     char m_RecvBuf[RECV_BUF_SIZE];
     int m_RecvBufPos;
     CPackage *m_CurPackage;
+    size_t m_CurPackPos;//for send 
 private:
     std::list<CPackage *> *m_SendPackList;
 };

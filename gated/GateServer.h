@@ -3,11 +3,11 @@
 
 #include <unordered_map>
 
-#include "Package.h"
-#include "Rpc.h"
-#include "ConfigParser.h"
-#include "BaseServer.h"
-#include "ConnState.h"
+#include "CPackage.h"
+#include "CRpc.h"
+#include "CConfigParser.h"
+#include "CBaseServer.h"
+#include "CConnState.h"
 
 namespace XEngine
 {
@@ -17,9 +17,9 @@ class CGateServer : public CBaseServer
 public:
     CGateServer();
     ~CGateServer();
-    void Init();
+    int Init();
     void Run();
-    int RpcDispatch(CMD_ID cmd_id, CPackage *package);
+    int CmdDispatch(CMD_ID cmd_id, CPackage *package);
 private:
     //CLoadBalance *m_LoadBalance;
     //CLoadBalance *m_LoadBalance;

@@ -1,15 +1,16 @@
 //dbd进程逻辑
+/*
 #include <mongocxx/instance.hpp>
 
 #include "DBProxyServer.h"
-#include "Log.h"
+#include "CLog.h"
 #include "NetTool.h"
 #include "Cmd.h"
 #include "Common.h"
-#include "ConnState.h"
-#include "ConfigParser.h"
+#include "CConnState.h"
+#include "CConfigParser.h"
 #include "WorkerMgr.h"
-#include "Package.h"
+#include "CPackage.h"
 
 namespace XEngine
 {
@@ -93,3 +94,4 @@ int CDBProxyServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)
 
 }
 
+*/

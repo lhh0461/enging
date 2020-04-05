@@ -10,10 +10,10 @@
 #include <msgpack.hpp>
 #include <tinyxml2.h>
 
-#include "Rpc.h"
-#include "Package.h"
+#include "CRpc.h"
+#include "CPackage.h"
 #include "Script.h"
-#include "Log.h"
+#include "CLog.h"
 
 using namespace std;
 using namespace tinyxml2;
@@ -64,13 +64,6 @@ stRpcFunction * CRpc::ParseFunc(XMLElement *elem, eRpcType type)
     pFunction->type = type;
 
     XMLElement *field_elem;
-    if (type == RPC_SERVER || type == RPC_HOST) {
-        field_elem = elem->FirstChildElement("path");
-        pFunction->module = string(field_elem->GetText());
-
-        field_elem = elem->FirstChildElement("deamon");
-        field_elem->QueryIntText((int *)&pFunction->deamon);
-    }
 
     field_elem = elem->FirstChildElement("function");
     pFunction->name = string(field_elem->GetText());
@@ -214,7 +207,7 @@ int CRpc::PackField(eRpcFieldType field, PyObject *item, CPackage *package)
 
     switch(field) {
         case RPC_INT:
-            package->PackInt(PyLong_AsLong(item));
+            package->PackInt64(PyLong_AsLong(item));
             break;
         case RPC_STRING: 
             {
@@ -230,7 +223,7 @@ int CRpc::PackField(eRpcFieldType field, PyObject *item, CPackage *package)
             {
                 const char *str = PyBytes_AsString(item);
                 Py_ssize_t size = PyBytes_Size(item);
-                package->PackBytes(str, size);
+                package->PackString(str, size);
                 break;
             }
         case RPC_BOOL:
@@ -261,12 +254,12 @@ int CRpc::Pack(RPC_PID pid, PyObject *obj, CPackage *package)
         return -1;
     }
 
-    if (pFunction->args.size() != PyTuple_Size(obj)) {
+    if ((int)pFunction->args.size() != PyTuple_Size(obj)) {
         fprintf(stderr, "tuple obj size is not equal arg cnt. expected=%ld, size=%ld\n", pFunction->args.size(), PyTuple_Size(obj));
         return -1;
     }
     
-    package->PackInt(pid);
+    package->PackInt16(pid);
     int i = 0;
     for (auto iter : pFunction->args) {
         if (this->PackField(iter, PyTuple_GetItem(obj, i++), package) != 0) return -1;
@@ -303,8 +296,8 @@ PyObject *CRpc::UnPackField(eRpcFieldType field, CPackage *package)
     switch(field) {
         case RPC_INT:
             {
-                int64_t val;
-                package->UnPackInt(val);
+                int32_t val;
+                package->UnPackInt32(val);
                 if (package->GetErrCode() > 0) {
                     return NULL;
                 }
@@ -312,8 +305,8 @@ PyObject *CRpc::UnPackField(eRpcFieldType field, CPackage *package)
             }
         case RPC_UINT:
             {
-                uint64_t val;
-                package->UnPackInt(val);
+                uint32_t val;
+                package->UnPackUInt32(val);
                 if (package->GetErrCode() > 0) {
                     return NULL;
                 }
@@ -331,7 +324,7 @@ PyObject *CRpc::UnPackField(eRpcFieldType field, CPackage *package)
         case RPC_PB:
             {
                 std::string val;
-                package->UnPackBytes(val);
+                package->UnPackString(val);
                 if (package->GetErrCode() > 0) {
                     return NULL;
                 }
@@ -339,7 +332,7 @@ PyObject *CRpc::UnPackField(eRpcFieldType field, CPackage *package)
             }
         case RPC_FLOAT:
             {
-                double val;
+                float val;
                 package->UnPackFloat(val);
                 if (package->GetErrCode() > 0) {
                     return NULL;
@@ -378,7 +371,7 @@ PyObject * CRpc::UnPack(RPC_PID pid, CPackage *package)
 
     int i = 0;
     for (auto iter : pFunction->args) {
-        if ((field = this->UnPackField(iter, package)) == NULL) {
+        if ((field = UnPackField(iter, package)) == NULL) {
             Py_DECREF(obj);
             return NULL;
         }
@@ -387,24 +380,25 @@ PyObject * CRpc::UnPack(RPC_PID pid, CPackage *package)
     return obj;
 }
 
-int CRpc::Dispatch(CPackage *package)
+//除了包意外事件还有其他数据
+int CRpc::Dispatch(CConnState *pConnState, CPackage *pPackage)
 {
     PyObject *obj;
 
     RPC_PID pid;
-    package->UnPackInt(pid);
-    if (package->GetErrCode() > 0) {
+    pPackage->UnPackUInt16(pid);
+    if (pPackage->GetErrCode() > 0) {
         return -1;
     }
 
-    fprintf(stderr, "Dispatch. pid=%d\n", pid);
+    LOG_DEBUG("Dispatch. pid=%d\n", pid);
     const stRpcFunction *pFunction = GetFunctionById(pid);
     if (pFunction == NULL) {
         fprintf(stderr, "CRpc::Dispatch can't find pid function. pid=%d\n", pid);
         return -1;
     }
 
-    obj = UnPack(pid, package);
+    obj = UnPack(pid, pPackage);
     if (obj == NULL) {
         fprintf(stderr, "CRpc::Dispatch unpack fail. pid=%d\n", pid);
         return -1;

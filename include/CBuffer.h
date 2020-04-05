@@ -27,9 +27,8 @@ public:
     void SetDataSize(size_t size) { m_size = size; }
     size_t GetBufSize() const { return m_alloc; }
     void Reset() { m_size = 0; }
-    void write(const char* buf, size_t len); //define for msgpack
-private:
-    void Expand(size_t len);
+    int Expand(size_t len);
+    int Expand();
 private:
     char* m_data;
     size_t m_size;

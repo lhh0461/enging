@@ -1,3 +1,4 @@
+/*
 #include "WorkerMgr.h"
 
 namespace XEngine
@@ -6,40 +7,54 @@ namespace XEngine
 CWorker::CWorker()
     :m_WorkerMgr(NULL),m_UserData(NULL)
 {
-    pthread_mutex_init(&m_Mutex, NULL);
 }
 
 CWorker::~CWorker()
 { 
-    pthread_mutex_destroy(&m_Mutex);
 };
 
-int CWorker::ProduceTask(void *pTask)
+int CWorker::PushMsg(void *pTask)
 {
     pthread_mutex_lock(&m_Mutex);
     m_TaskQueue.push_back(pTask);
     pthread_mutex_unlock(&m_Mutex);
 }
 
+
+//------------------------------------------------------------
+
 CWorkerMgr::CWorkerMgr(int iWorkerNum, eWorkerType iWorkerType)
     :m_WorkerType(iWorkerType),m_WorkerCnt(iWorkerNum),m_Counter(0),m_Quit(0)
 {
-    m_Workers.reserve(iWorkerNum);
+    m_WorkerList.reserve(iWorkerNum);
     for (int i = 0; i < m_WorkerCnt; i++) {
-        CWorker* pWorker = CreateWorkerFactory(iWorkerType);
+        int fds[2];
+        if (socketpair(PF_LOCAL,SOCK_STREAM,0,fds) < 0) {
+            perror("socketpair");
+            return 0;
+        }
+
+        CWorker* pWorker = new CWorker();
         pWorker->m_WorkerMgr = this;
-        m_Workers[i] = pWorker;
+        m_WorkerList[i] = pWorker;
+
+        AddFdToEpoll(fds[0], EPOLLIN|EPOLLET);
+
+        ret = pthread_create(&pWorker->m_Id, NULL, WorkerMain, pWorker);
+        if (ret != 0) {
+            return -1;
+        }
     }
 }
 
 CWorkerMgr::~CWorkerMgr()
 {
     for (int i = 0; i < m_WorkerCnt; i++) {
-        if (m_Workers[i]) {
-            delete m_Workers[i];
+        if (m_WorkerList[i]) {
+            delete m_WorkerList[i];
         }
     }
-    m_Workers.clear();
+    m_WorkerList.clear();
 }
 
 int CWorkerMgr::StartWorker()
@@ -47,7 +62,7 @@ int CWorkerMgr::StartWorker()
     pthread_t pid;
     int ret;
     for (int i = 0; i < m_WorkerCnt; i++) {
-        CWorker *pWorker = m_Workers[i];
+        CWorker *pWorker = m_WorkerList[i];
         ret = pthread_create(&pWorker->m_Id, NULL, WorkerMain, pWorker);
         if (ret != 0) {
             return -1;
@@ -82,11 +97,12 @@ void *CWorkerMgr::WorkerMain(void *arg)
     return 0;
 }
 
-int CWorkerMgr::PushTask(void *pTask)
+int CWorkerMgr::PushMsg(int id, CMsg *pMsg)
 {
-    CWorker *pWorker = m_Workers[++m_Counter % m_WorkerCnt];
-    pWorker->ProduceTask(pTask);
+    CWorker *pWorker = m_WorkerList[id % m_WorkerCnt];
+    pWorker->PushMsg(pMsg);
     return 0;
 }
 
 }
+*/

@@ -1,10 +1,10 @@
 #include "GateServer.h"
-#include "Log.h"
+#include "CLog.h"
 #include "NetTool.h"
 #include "Cmd.h"
 #include "Common.h"
-#include "ConfigParser.h"
-#include "Package.h"
+#include "CConfigParser.h"
+#include "CPackage.h"
 
 namespace XEngine
 {
@@ -18,7 +18,8 @@ CGateServer::~CGateServer()
 {
 
 }
-void CGateServer::Init()
+
+int CGateServer::Init()
 {
 
 }
@@ -28,10 +29,10 @@ void CGateServer::Run()
 
 }
 
-int CGateServer::RpcDispatch(CMD_ID cmd_id, CPackage *package)
+int CGateServer::CmdDispatch(CMD_ID cmd_id, CPackage *package)
 {
     //解析成功，直接返回
-    if (CBaseServer::RpcDispatch(cmd_id, package)) {
+    if (CBaseServer::CmdDispatch(cmd_id, package)) {
         return 1;
     }
     

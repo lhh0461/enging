@@ -1,9 +1,9 @@
 #include <unistd.h>
 #include <getopt.h>
 
-#include "Log.h"
+#include "CLog.h"
 #include "Common.h"
-#include "BaseServer.h"
+#include "CBaseServer.h"
 
 #include "../centerd/CenterServer.h"
 #include "../dbd/DBProxyServer.h"
@@ -35,14 +35,15 @@ int main(int argc, char *argv[])
                 return 0;
             case 'c':
                 g_Server = new XEngine::CCenterServer();
+                LOG_DEBUG("start center server");
                 break;
             case 'g':
                 g_Server = new XEngine::CGameServer();
                 LOG_DEBUG("start gamed server");
                 break;
             case 'd':
-                g_Server = new XEngine::CDBProxyServer();
-                LOG_DEBUG("start dbd server");
+                //g_Server = new XEngine::CDBProxyServer();
+                //LOG_DEBUG("start dbd server");
                 break;
             case ':':
                 break;

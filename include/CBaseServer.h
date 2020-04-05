@@ -23,10 +23,10 @@ public:
 public:
     CBaseServer(SERVER_TYPE server_type);
     virtual ~CBaseServer();
-    virtual void Init();
+    virtual int Init();
     virtual void Run();
 protected:
-    int RpcDispatch(CMD_ID cmd, CPackage *package); //子类覆盖
+    virtual int CmdDispatch(CMD_ID cmd, CPackage *package); //子类覆盖
     virtual void AddRecvPack(CPackage *package) { m_RecvPackList.push_back(package); };
     virtual void SendPackage();
     void AddListenFd(std::string ip, int port);
@@ -41,10 +41,10 @@ public:
     CLUSTER_ID GetClusterId() { return m_ClusterId; };
     SERVER_ID GetServerId() { return m_ServerId; };
     SERVER_TYPE GetServerType() { return m_ServerType; };
-    CConfigParser *GetConfig() { return m_Config; };
+    const CConfigParser *GetConfig() { return m_Config; };
 private:
     int OnRpcCall(CPackage *package);
-    void HandleNewConnection();
+    int HandleNewConnection();
     void AddFdToEpoll(int fd, uint32_t events);
     void ModifFdEpollEvents(int fd, uint32_t events);
     void HandleRecvMsg(CConnState *conn);
@@ -55,7 +55,7 @@ private:
 protected:
     SERVER_ID m_ServerId; //中心服分配的具体ID
     SERVER_TYPE m_ServerType; //服务器类型
-    CLUSTER_ID m_ClusterId; //集群ID
+    CLUSTER_ID m_ClusterId; //集群ID配置决定
     CConfigParser *m_Config;
     int m_EpollFd; 
     int m_ListenFd; 
