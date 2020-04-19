@@ -7,11 +7,11 @@ LINK=-Wl,-rpath,$(JEMALLOC_DIR)/lib
 LIB_DIR:=lib
 INC_DIR:=include
 THIRD_PART_DIR:=3rd
-MSGPACK_DIR:=$(THIRD_PART_DIR)/msgpack
+PROTOBUF_DIR:=$(THIRD_PART_DIR)/protobuf
 TINYXML_DIR:=$(THIRD_PART_DIR)/tinyxml2
 
 INC_FILES:=-I$(INC_DIR) \
-	-I$(MSGPACK_DIR)/include/ \
+	-I$(PROTOBUF_DIR)/include/ \
 	-I$(TINYXML_DIR)/include/ \
 	-I/usr/include/python3.5 \
 	-I/usr/local/include/mongocxx/v_noabi \
@@ -27,12 +27,13 @@ CXX_SRC_FILES:=$(wildcard ./common/*.cpp) \
 
 CXX_OBJ_FILES:=$(subst .cpp,.o,$(CXX_SRC_FILES))
 
-LIBS=-L$(MSGPACK_DIR)/lib \
+LIBS=-L$(PROTOBUF_DIR)/lib \
 	-L$(TINYXML_DIR)/lib \
 	-L/usr/local/lib
 
 STATIC_LIBS=-lpython3.5m \
 	-ltinyxml2 \
+	-lprotobuf \
 	-lmongocxx \
 	-lbsoncxx \
 	-lpthread

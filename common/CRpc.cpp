@@ -7,7 +7,6 @@
 #include <dirent.h>
 #include <unistd.h>
 
-#include <msgpack.hpp>
 #include <tinyxml2.h>
 
 #include "CRpc.h"
