@@ -149,6 +149,4 @@ string CConfigParser::GetDefConfig(const string & cSection, const string & cKey,
     return cDef;
 }
 
-
-
 }
